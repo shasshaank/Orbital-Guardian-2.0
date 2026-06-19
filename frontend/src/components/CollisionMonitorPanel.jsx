@@ -11,13 +11,17 @@ export default function CollisionMonitorPanel({ satellites, onCheckCollision, on
   const [isFocusedA, setIsFocusedA] = useState(false);
   const [isFocusedB, setIsFocusedB] = useState(false);
 
-  const filteredA = searchA 
-    ? satellites.filter(s => s.name.toLowerCase().includes(searchA.toLowerCase())).slice(0, 10)
-    : satellites.slice(0, 10);
+  const filteredA = Array.isArray(satellites)
+    ? (searchA 
+        ? satellites.filter(s => s.name.toLowerCase().includes(searchA.toLowerCase())).slice(0, 10)
+        : satellites.slice(0, 10))
+    : [];
     
-  const filteredB = searchB 
-    ? satellites.filter(s => s.name.toLowerCase().includes(searchB.toLowerCase())).slice(0, 10)
-    : satellites.slice(0, 10);
+  const filteredB = Array.isArray(satellites)
+    ? (searchB 
+        ? satellites.filter(s => s.name.toLowerCase().includes(searchB.toLowerCase())).slice(0, 10)
+        : satellites.slice(0, 10))
+    : [];
 
   const handleCheck = async () => {
     if (!satA || !satB) return;

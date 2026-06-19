@@ -171,13 +171,15 @@ export default function SatelliteLayer({
     console.warn("Satellite fetch error:", error);
   }
 
-  const satList = satellites.map(s => {
-    let role = null;
-    if (selectedAsset && s.name === selectedAsset.name) role = 'asset';
-    else if (selectedSatA && s.name === selectedSatA.name) role = 'satA';
-    else if (selectedSatB && s.name === selectedSatB.name) role = 'satB';
-    return { ...s, role };
-  });
+  const satList = Array.isArray(satellites)
+    ? satellites.map(s => {
+        let role = null;
+        if (selectedAsset && s.name === selectedAsset.name) role = 'asset';
+        else if (selectedSatA && s.name === selectedSatA.name) role = 'satA';
+        else if (selectedSatB && s.name === selectedSatB.name) role = 'satB';
+        return { ...s, role };
+      })
+    : [];
 
   const selecteds = [
     selectedAsset ? { ...selectedAsset, role: 'asset' } : null,

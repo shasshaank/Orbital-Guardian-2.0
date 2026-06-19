@@ -12,9 +12,11 @@ export default function AssetMonitor({ satellites, onSelect }) {
 
   const [isFocused, setIsFocused] = useState(false);
 
-  const displaySats = searchTerm 
-    ? satellites.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 10)
-    : satellites.slice(0, 10);
+  const displaySats = Array.isArray(satellites)
+    ? (searchTerm 
+        ? satellites.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase())).slice(0, 10)
+        : satellites.slice(0, 10))
+    : [];
 
   async function handleScan(sat) {
     const catnr = parseInt(sat.line1.substring(2, 7).trim(), 10);
