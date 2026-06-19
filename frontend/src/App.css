@@ -13,28 +13,32 @@
 }
 
 :root {
-  --bg-primary:   #0a0a0f;
-  --bg-surface:   #0f0f1a;
-  --bg-card:      #12121f;
-  --border:       #1e2040;
-  --accent-cyan:  #00e5ff;
-  --accent-blue:  #4fc3f7;
-  --accent-purple:#7c4dff;
-  --text-primary: #e8eaf6;
-  --text-muted:   #7986cb;
-  --risk-critical:#f44336;
-  --risk-warning: #ff9800;
-  --risk-safe:    #4caf50;
+  --bg-primary:   #000000;
+  --bg-surface:   rgba(28, 28, 30, 0.65);
+  --bg-card:      rgba(44, 44, 46, 0.6);
+  --border:       rgba(255, 255, 255, 0.12);
+  --accent-cyan:  #0A84FF; /* Apple Blue */
+  --accent-blue:  #64D2FF;
+  --accent-purple:#BF5AF2;
+  --text-primary: #F5F5F7;
+  --text-muted:   #8E8E93;
+  --risk-critical:#FF453A;
+  --risk-warning: #FF9F0A;
+  --risk-safe:    #32D74B;
+  --glass-blur:   blur(24px);
 }
 
 body {
   background-color: var(--bg-primary);
+  background-image: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #000000 70%);
   color: var(--text-primary);
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   height: 100vh;
-  overflow: hidden; /* Prevent page scroll so zoom doesn't break layout */
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ── App shell ──────────────────────────────────────────────────────────── */
@@ -50,9 +54,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 24px;
+  padding: 16px 32px;
   background: var(--bg-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--border);
+  z-index: 10;
 }
 
 .header-content {
@@ -134,15 +141,22 @@ body {
 .panels-column {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 16px;
+  padding: 20px;
   overflow-y: auto;
-  background: var(--bg-primary);
+  background: transparent;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-left: 1px solid var(--border);
 }
 
 /* ── Generic panel ──────────────────────────────────────────────────────── */
 .panel {
-  padding: 20px;
-  border-bottom: 1px solid var(--border);
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .panel-title {
@@ -155,21 +169,23 @@ body {
 /* ── Buttons ────────────────────────────────────────────────────────────── */
 .action-btn {
   width: 100%;
-  padding: 10px 16px;
-  border: 1px solid var(--accent-cyan);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--accent-cyan);
-  font-size: 0.85rem;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent-cyan);
+  color: #ffffff;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: all 0.2s ease;
   margin-bottom: 14px;
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
 }
 
 .action-btn:hover:not(:disabled) {
-  background: var(--accent-cyan);
-  color: var(--bg-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(10, 132, 255, 0.4);
+  background: #148eff;
 }
 
 .action-btn:disabled {
@@ -201,9 +217,10 @@ body {
 /* ── Risk card ──────────────────────────────────────────────────────────── */
 .risk-card {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px;
-  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 16px;
+  background: rgba(30, 30, 32, 0.6);
+  backdrop-filter: var(--glass-blur);
 }
 
 .risk-badge {
@@ -256,9 +273,10 @@ body {
 /* ── Maneuver card ──────────────────────────────────────────────────────── */
 .maneuver-card {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px;
-  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 16px;
+  background: rgba(30, 30, 32, 0.6);
+  backdrop-filter: var(--glass-blur);
 }
 
 .maneuver-header {
@@ -371,13 +389,13 @@ body {
 
 /* ── UI Risk Hierarchy Tints ────────────────────────────────────────────── */
 .bg-critical {
-  background: linear-gradient(145deg, rgba(244, 67, 54, 0.15) 0%, var(--bg-card) 100%) !important;
-  border-color: var(--risk-critical) !important;
+  background: linear-gradient(145deg, rgba(255, 69, 58, 0.15) 0%, rgba(30, 30, 32, 0.8) 100%) !important;
+  border-color: rgba(255, 69, 58, 0.5) !important;
 }
 
 .bg-warning {
-  background: linear-gradient(145deg, rgba(255, 152, 0, 0.15) 0%, var(--bg-card) 100%) !important;
-  border-color: var(--risk-warning) !important;
+  background: linear-gradient(145deg, rgba(255, 159, 10, 0.15) 0%, rgba(30, 30, 32, 0.8) 100%) !important;
+  border-color: rgba(255, 159, 10, 0.5) !important;
 }
 
 .bg-safe {
@@ -464,20 +482,16 @@ body {
 }
 
 .satellite-selector-wrapper select {
-
-  background: rgba(10,10,20,0.9);
-  color: #e0f7fa;
-
-  border: 1px solid #00e5ff;
-  border-radius: 6px;
-
-  padding: 6px 10px;
-
-  font-size: 13px;
-
+  background: rgba(28, 28, 30, 0.8);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
   outline: none;
-
   transition: all 0.2s ease;
+  backdrop-filter: var(--glass-blur);
+  cursor: pointer;
 }
 
 .satellite-selector-wrapper select:hover {
@@ -521,4 +535,57 @@ body {
 .tradeoff-type {
   font-weight: 600;
   color: var(--accent-blue);
+}
+
+/* ── New Features Styling ── */
+.search-input-small {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.search-input-small:focus {
+  border-color: var(--accent-cyan);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.searchable-select {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.asset-monitor-panel {
+  background: var(--bg-card);
+  /* Remove the old gradient to stick with the clean card style */
+}
+
+.panel-description {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.border-critical {
+  border-left: 4px solid var(--risk-critical);
+}
+
+.border-warning {
+  border-left: 4px solid var(--risk-warning);
+}
+
+.risk-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.risk-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
 }

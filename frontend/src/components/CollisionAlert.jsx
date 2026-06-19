@@ -28,14 +28,7 @@ export default function CollisionAlert({
   const [error, setError] = useState(null);
   const [result, setResult] = useState(alertData || null);
 
-  useEffect(() => {
-    // Auto-run if triggered by App.jsx pipeline
-    if (pipelineStage === 'propagating' && selectedSatA && selectedSatB) {
-      runCollisionCheck();
-    }
-  }, [pipelineStage, selectedSatA, selectedSatB]);
-
-  async function runCollisionCheck() {
+  const runCollisionCheck = React.useCallback(async () => {
     if (!selectedSatA || !selectedSatB) {
       setError("Please select both satellites first.");
       return;
@@ -78,7 +71,14 @@ export default function CollisionAlert({
     } finally {
       setLoading(false);
     }
-  }
+  }, [selectedSatA, selectedSatB, pipelineStage, onDataChange, setPipelineStage]);
+
+  useEffect(() => {
+    // Auto-run if triggered by App.jsx pipeline
+    if (pipelineStage === 'propagating' && selectedSatA && selectedSatB) {
+      runCollisionCheck();
+    }
+  }, [pipelineStage, selectedSatA, selectedSatB, runCollisionCheck]);
 
   const riskColor = result
     ? (RISK_COLORS[result.risk_level] || '#9e9e9e')

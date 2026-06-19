@@ -12,7 +12,7 @@ Endpoints:
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from .tle_fetcher import fetch_tle_data
+from .tle_fetcher import fetch_tle_data, fetch_tle_by_catnr
 from .propagator import propagate_satellite, get_current_position
 from .collision_detector import calculate_closest_approach
 from .maneuver_engine import recommend_maneuver
@@ -59,24 +59,30 @@ def health_check() -> dict:
 @app.get("/satellites")
 def get_satellites(
     group: str = Query(default="active", description="Celestrak satellite group"),
-    limit: int = Query(default=50, ge=1, le=500, description="Max satellites to return"),
+    limit: int = Query(default=1000, ge=1, le=6000, description="Max satellites to return"),
 ) -> list[dict]:
     """
-    Fetch satellite TLE data from Celestrak.
-
-    Args:
-        group:  Celestrak group name (e.g. "active", "stations", "starlink").
-        limit:  Maximum number of satellites to return.
-
-    Returns:
-        List of satellite dicts: name, line1, line2.
+    Fetch satellite TLE data and compute current positions.
     """
     try:
-        satellites = fetch_tle_data(group=group)
+        tle_list = fetch_tle_data(group=group)
+        tle_list = tle_list[:limit]
+        
+        results = []
+        for sat in tle_list:
+            pos = get_current_position(sat["line1"], sat["line2"])
+            if pos:
+                results.append({
+                    "name": sat["name"],
+                    "line1": sat["line1"],
+                    "line2": sat["line2"],
+                    "lat": pos["lat"],
+                    "lon": pos["lon"],
+                    "alt_km": pos["alt_km"]
+                })
+        return results
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Celestrak fetch failed: {exc}") from exc
-
-    return satellites[:limit]
+        raise HTTPException(status_code=502, detail=f"Satellite fetch failed: {exc}") from exc
 
 
 @app.get("/propagate")
@@ -135,6 +141,51 @@ def check_collision(
         raise HTTPException(status_code=422, detail=f"Propagation failed: {exc}") from exc
 
     return calculate_closest_approach(pos_a, pos_b)
+
+
+@app.get("/asset-scan")
+def asset_scan(
+    catnr: int = Query(..., description="NORAD catalog number of the asset to monitor"),
+    hours: int = Query(default=24, ge=1, le=168, description="Scan window in hours"),
+) -> dict:
+    """
+    Scan a primary asset against the entire fleet for collision risks.
+    """
+    primary = fetch_tle_by_catnr(catnr)
+    if not primary:
+        raise HTTPException(status_code=404, detail="Primary asset not found.")
+
+    all_satellites = fetch_tle_data()
+    # Remove primary from candidates
+    candidates = [s for s in all_satellites if s["line1"] != primary["line1"]]
+    
+    try:
+        primary_pos = propagate_satellite(primary["line1"], primary["line2"], hours_ahead=hours)
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"Failed to propagate primary asset: {exc}")
+    risks = []
+    # For a hackathon demo, we limit the comparison to a reasonable number to avoid long waits,
+    # or we can do a broad-phase filter. Here we'll do the top 500 candidates.
+    for sat in candidates[:500]:
+        try:
+            sat_pos = propagate_satellite(sat["line1"], sat["line2"], hours_ahead=hours)
+        except Exception:
+            continue
+            
+        result = calculate_closest_approach(primary_pos, sat_pos)
+        if result["risk_level"] != "SAFE":
+            risks.append({
+                "target_name": sat["name"],
+                "min_distance_km": result["min_distance_km"],
+                "risk_level": result["risk_level"],
+                "closest_event": result["closest_event"]
+            })
+    
+    return {
+        "asset": primary["name"],
+        "scan_count": len(candidates[:500]),
+        "risks": sorted(risks, key=lambda x: x["min_distance_km"] or 999999)
+    }
 
 
 @app.get("/maneuver-recommend")

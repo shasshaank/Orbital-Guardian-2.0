@@ -26,7 +26,7 @@ function latLonAltToVec3(lat, lon, altKm) {
 /**
  * Individual satellite marker
  */
-function SatelliteDot({ satellite, isHovered, onHover, onUnhover }) {
+function SatelliteDot({ satellite, isHovered, role, onHover, onUnhover }) {
 
   const pos = latLonAltToVec3(
     satellite.lat,
@@ -34,9 +34,33 @@ function SatelliteDot({ satellite, isHovered, onHover, onUnhover }) {
     satellite.alt_km
   );
 
-  const color = isHovered ? '#ffeb3b' : '#00e5ff';
+  let color = '#00e5ff'; // default cyan
+  let size = 0.013;
+  let haloOpacity = 0.15;
+  let haloScale = 2.2;
 
-  const size = isHovered ? 0.02 : 0.013;
+  if (role === 'asset') {
+    color = '#ff9500'; // Orange
+    size = 0.035;
+    haloOpacity = 0.45;
+    haloScale = 3.0;
+  } else if (role === 'satA') {
+    color = '#30b0c0'; // Cyan/Teal (matches path)
+    size = 0.035;
+    haloOpacity = 0.45;
+    haloScale = 3.0;
+  } else if (role === 'satB') {
+    color = '#ff3b30'; // Red (matches path)
+    size = 0.035;
+    haloOpacity = 0.45;
+    haloScale = 3.0;
+  }
+
+  if (isHovered) {
+    color = '#ffeb3b'; // Yellow
+    size = role ? 0.04 : 0.022;
+    haloOpacity = 0.6;
+  }
 
   return (
     <group position={pos}>
@@ -54,11 +78,11 @@ function SatelliteDot({ satellite, isHovered, onHover, onUnhover }) {
       </Sphere>
 
       {/* Satellite glow halo */}
-      <Sphere args={[size * 2.2, 16, 16]}>
+      <Sphere args={[size * haloScale, 16, 16]}>
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={0.15}
+          opacity={haloOpacity}
         />
       </Sphere>
 
@@ -69,7 +93,7 @@ function SatelliteDot({ satellite, isHovered, onHover, onUnhover }) {
           <div
             style={{
               background: 'rgba(10,10,20,0.92)',
-              border: '1px solid #00e5ff',
+              border: `1px solid ${color}`,
               borderRadius: 6,
               padding: '6px 10px',
               color: '#e0f7fa',
@@ -79,7 +103,7 @@ function SatelliteDot({ satellite, isHovered, onHover, onUnhover }) {
               backdropFilter: 'blur(6px)'
             }}
           >
-            <strong style={{ color: '#00e5ff' }}>
+            <strong style={{ color: color }}>
               {satellite.name}
             </strong>
             <br />
@@ -97,7 +121,13 @@ function SatelliteDot({ satellite, isHovered, onHover, onUnhover }) {
 /**
  * SatelliteLayer — fetches satellites and renders them
  */
-export default function SatelliteLayer({ group = 'active', limit = 50 }) {
+export default function SatelliteLayer({ 
+  group = 'active', 
+  limit = 50, 
+  selectedAsset = null,
+  selectedSatA = null,
+  selectedSatB = null
+}) {
 
   const [satellites, setSatellites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,13 +135,10 @@ export default function SatelliteLayer({ group = 'active', limit = 50 }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
   useEffect(() => {
-
     let cancelled = false;
 
     async function loadSatellites() {
-
       try {
-
         setLoading(true);
         setError(null);
 
@@ -121,60 +148,21 @@ export default function SatelliteLayer({ group = 'active', limit = 50 }) {
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        const tleList = await res.json();
-
-        const withPositions = await Promise.all(
-
-          tleList.map(async (sat) => {
-
-            try {
-
-              const pRes = await fetch(
-                `${API_URL}/propagate?line1=${encodeURIComponent(sat.line1)}&line2=${encodeURIComponent(sat.line2)}&hours=1&step_minutes=60`
-              );
-
-              if (!pRes.ok) return null;
-
-              const positions = await pRes.json();
-
-              if (!positions.length) return null;
-
-              const p = positions[0];
-
-              return {
-                name: sat.name,
-                lat: p.lat,
-                lon: p.lon,
-                alt_km: p.alt_km
-              };
-
-            } catch {
-              return null;
-            }
-
-          })
-        );
+        const data = await res.json();
 
         if (!cancelled) {
-          setSatellites(withPositions.filter(Boolean));
+          // data already contains lat, lon, alt_km from the backend optimization
+          setSatellites(data);
         }
-
       } catch (err) {
-
         if (!cancelled) setError(err.message);
-
       } finally {
-
         if (!cancelled) setLoading(false);
-
       }
-
     }
 
     loadSatellites();
-
     return () => { cancelled = true; };
-
   }, [group, limit]);
 
   if (loading) return null;
@@ -183,21 +171,38 @@ export default function SatelliteLayer({ group = 'active', limit = 50 }) {
     console.warn("Satellite fetch error:", error);
   }
 
+  const satList = satellites.map(s => {
+    let role = null;
+    if (selectedAsset && s.name === selectedAsset.name) role = 'asset';
+    else if (selectedSatA && s.name === selectedSatA.name) role = 'satA';
+    else if (selectedSatB && s.name === selectedSatB.name) role = 'satB';
+    return { ...s, role };
+  });
+
+  const selecteds = [
+    selectedAsset ? { ...selectedAsset, role: 'asset' } : null,
+    selectedSatA ? { ...selectedSatA, role: 'satA' } : null,
+    selectedSatB ? { ...selectedSatB, role: 'satB' } : null,
+  ].filter(Boolean);
+
+  selecteds.forEach(sel => {
+    if (!satList.some(s => s.name === sel.name)) {
+      satList.push(sel);
+    }
+  });
+
   return (
     <group>
-
-      {satellites.map((sat, i) => (
-
+      {satList.map((sat, i) => (
         <SatelliteDot
           key={`${sat.name}-${i}`}
           satellite={sat}
           isHovered={hoveredIndex === i}
+          role={sat.role}
           onHover={() => setHoveredIndex(i)}
           onUnhover={() => setHoveredIndex(null)}
         />
-
       ))}
-
     </group>
   );
 }
