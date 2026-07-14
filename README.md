@@ -1,7 +1,8 @@
-# 🛰 Orbital Guardian
-### **Top 9 @ IIT Hyderabad Technical Showcase (Out of 389+ Teams)**
-> **AI-Powered Space Debris Collision Prediction & Avoidance System**
+# Orbital Guardian
 
+### Ranked **8th of 389+ teams** — IIT Hyderabad Technical Showcase (Mar 2026)
+
+> **Physics-driven space debris collision prediction and avoidance system**
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.11-green.svg)
@@ -11,152 +12,126 @@
 
 ---
 
-## 🏆 Awards & Recognition
-* **Ranked 9th out of 389 teams** at the **IIT Hyderabad Technical Showcase (Mar 2026)**.
-* Presented real-time satellite collision detection systems to **IIT faculty and industry experts**.
-* Commended for integrating **SGP4 orbital propagation** with a physics-based maneuver advisor.
+## Awards & Recognition
+
+- **8th place out of 389+ teams** at the **IIT Hyderabad Technical Showcase** (March 2026)
+- Presented a working end-to-end collision detection and avoidance demo to **IIT faculty and industry evaluators**
+- Recognized for combining **live NORAD/Celestrak TLE ingestion**, **SGP4 orbital propagation**, and a **physics-based maneuver advisor** in an interactive 3D interface
 
 ---
 
-## 🌌 Overview
+## Overview
 
-Earth's orbit is becoming dangerously crowded.
+Low Earth Orbit is increasingly congested. Tens of thousands of tracked objects — and millions of smaller fragments — travel at orbital velocities where even centimetre-scale debris can disable a satellite. Operators need more than raw catalogs: they need trajectory forecasts, conjunction risk, and actionable avoidance guidance.
 
-- **36,000+** tracked debris objects
-- **Millions** of smaller untracked fragments
-- Debris travels at **~28,000 km/h**
-- Even a **1 cm fragment** can destroy a satellite
+**Orbital Guardian** is a full-stack decision-support demo that closes that loop:
 
-**Orbital Guardian** transforms this challenge from a monitoring problem into a
-decision-making system. It ingests live TLE data, simulates orbital trajectories,
-identifies collision risks, and uses AI to recommend optimal avoidance maneuvers —
-all visualised in a stunning real-time 3-D interface.
+1. Ingest live Two-Line Element (TLE) data from public catalogs  
+2. Propagate orbits with the industry-standard **SGP4** model  
+3. Detect closest-approach events and classify risk  
+4. Recommend avoidance burns using orbital geometry (cross-track / radial heuristics)  
+5. Visualize the fleet, selected conjunctions, and trajectories on an interactive **Three.js** Earth
 
----
-
-## 🚨 The Problem
-
-### 1. Massive Data Complexity
-Thousands of satellites and debris fragments are moving simultaneously across
-different orbital planes, altitudes, and velocities. Tracking all pairwise
-interactions in real time requires sophisticated algorithms.
-
-### 2. Limited Collision Prediction Tools
-Existing systems often provide static warnings and raw trajectory data with
-no clear decision guidance for satellite operators.
-
-### 3. No Intelligent Maneuver Planning
-Avoiding debris requires carefully planned burns that consider fuel limitations,
-orbital stability, and mission objectives.
-
-### 4. Increasing Satellite Density
-Mega-constellations (Starlink, OneWeb, Kuiper) are launching thousands of
-satellites, dramatically increasing the probability of chain-reaction collisions
-— the dreaded **Kessler Syndrome**.
+The system is designed as a transparent, explainable pipeline — every recommendation is grounded in orbital mechanics and state vectors, not a black-box model.
 
 ---
 
-## ✨ Key Features
+## Problem
 
-| Feature | Description |
-|---------|-------------|
-| 🌍 **3-D Orbital Visualization** | Interactive spinning Earth with live satellite positions rendered using Three.js |
-| 📡 **Real-Time TLE Ingestion** | Fetches live orbital elements from Celestrak / NORAD |
-| ⚡ **SGP4 Orbital Propagation** | Predicts satellite positions hours in advance |
-| 🚨 **Collision Risk Detection** | Pairwise closest-approach analysis with CRITICAL / WARNING / SAFE classification |
-| 🤖 **AI Maneuver Advisor** | Recommends optimal avoidance burns with delta-v, fuel cost, and confidence score |
+| Challenge | Why it matters |
+|-----------|----------------|
+| **Scale** | Thousands of active satellites and debris objects interact across altitudes and planes; pairwise screening is computationally demanding |
+| **Static tooling** | Many tools surface warnings without clear operator guidance on *what burn to plan* |
+| **Maneuver tradeoffs** | Avoidance burns must balance miss distance, fuel (Δv budget), and mission constraints |
+| **Mega-constellations** | Dense LEO fleets raise conjunction rates and the long-term risk of cascade events (Kessler Syndrome) |
 
 ---
 
-## 🏗 System Architecture
+## Key Capabilities
+
+| Capability | What it does |
+|------------|--------------|
+| **Interactive 3D orbital visualization** | React Three Fiber globe with live satellite markers, selection highlighting, and rendered trajectory arcs |
+| **Live TLE ingestion** | Fetches NORAD TLEs from Celestrak, with local cache and offline fallback for resilient demos |
+| **SGP4 propagation** | Predicts position/velocity hours ahead; exposes TEME Cartesian state and geodetic lat/lon/alt |
+| **Pairwise collision screening** | Time-aligned closest-approach analysis with **CRITICAL / WARNING / SAFE** thresholds |
+| **Strategic asset monitor** | Scans a primary satellite (by NORAD catalog number) against a large candidate fleet for non-SAFE conjunctions |
+| **Physics-based maneuver advisor** | Recommends burn direction, Δv, estimated fuel cost, confidence, and tradeoff options (e.g. max separation vs emergency radial) |
+
+---
+
+## System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        ORBITAL GUARDIAN                         │
-│                                                                 │
-│   ┌─────────────┐    ┌──────────────────────────────────────┐  │
-│   │  Data Layer  │    │         Backend (FastAPI)            │  │
-│   │             │───▶│  tle_fetcher  →  propagator          │  │
-│   │  Celestrak  │    │      ↓               ↓               │  │
-│   │  Space-Track│    │  collision_detector  maneuver_engine  │  │
-│   └─────────────┘    └──────────────┬───────────────────────┘  │
-│                                     │ REST API                  │
-│                       ┌─────────────▼───────────────────────┐  │
-│                       │      Frontend (React + Three.js)     │  │
-│                       │  Globe  SatelliteLayer  CollisionAlert│  │
-│                       │              ManeuverPanel           │  │
-│                       └─────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│                         ORBITAL GUARDIAN                           │
+│                                                                    │
+│   ┌──────────────┐    ┌─────────────────────────────────────────┐ │
+│   │  Data Layer  │    │            Backend (FastAPI)            │ │
+│   │              │───▶│  tle_fetcher  →  propagator             │ │
+│   │  Celestrak   │    │       ↓                 ↓               │ │
+│   │  (NORAD TLE) │    │  collision_detector  maneuver_engine    │ │
+│   └──────────────┘    └──────────────────┬──────────────────────┘ │
+│                                          │ REST API               │
+│                        ┌─────────────────▼──────────────────────┐ │
+│                        │     Frontend (React + Three.js)        │ │
+│                        │  Globe · SatelliteLayer · AssetMonitor │ │
+│                        │  CollisionMonitor · ManeuverPanel      │ │
+│                        └────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────┘
 ```
+
+**Pipeline:** Catalog TLEs → SGP4 state vectors → closest-approach geometry → risk labels → maneuver heuristics → 3D visualization and operator panels.
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 18, Three.js (via `@react-three/fiber`, `@react-three/drei`) |
+|-------|------------|
+| **Frontend** | React 18, Tailwind CSS, Three.js (`@react-three/fiber`, `@react-three/drei`) |
 | **Backend** | Python 3.11, FastAPI, Uvicorn |
-| **Orbital Mechanics** | SGP4 (`sgp4` library), NumPy |
-| **Data Sources** | Celestrak TLE feeds, NORAD satellite catalog |
-| **Containerisation** | Docker |
+| **Orbital mechanics** | SGP4 (`sgp4`), NumPy |
+| **Data** | Celestrak / NORAD Two-Line Elements |
+| **Ops** | Docker (API image), environment-based API URL for deployment (e.g. Render) |
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- **Python 3.11+**
-- **Node.js 18+** and npm
+- Python 3.11+
+- Node.js 18+ and npm
 - (Optional) Docker
 
----
-
-### Backend Setup
+### Backend
 
 ```bash
 cd backend
-
-# Create and activate a virtual environment
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Copy and configure environment variables
 cp .env.example .env
-
-# Start the API server
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-The API will be available at `http://localhost:8000`.  
-Interactive docs are at `http://localhost:8000/docs`.
+- API: `http://localhost:8000`  
+- Interactive docs: `http://localhost:8000/docs`
 
----
-
-### Frontend Setup
+### Frontend
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Copy and configure environment variables
 cp .env.example .env
-
-# Start the development server
 npm start
 ```
 
-The frontend will open at `http://localhost:3000`.
+App: `http://localhost:3000`  
+Set `REACT_APP_API_URL` in `.env` to point at your backend (local or deployed).
 
----
-
-### Docker (Backend only)
+### Docker (backend)
 
 ```bash
 cd backend
@@ -166,78 +141,47 @@ docker run -p 8000:8000 orbital-guardian-api
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 ### `GET /health`
-
-Health check.
 
 ```json
 { "status": "ok", "service": "Orbital Guardian API" }
 ```
 
----
-
 ### `GET /satellites`
 
-Fetch live TLE data from Celestrak.
+Fetches TLE data and returns current geodetic positions.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `group`   | string | `active` | Celestrak satellite group |
-| `limit`   | int    | `50`     | Max satellites to return |
-
-**Example response:**
-```json
-[
-  {
-    "name": "ISS (ZARYA)",
-    "line1": "1 25544U 98067A ...",
-    "line2": "2 25544  51.6416 ..."
-  }
-]
-```
-
----
+| `group` | string | `active` | Celestrak satellite group |
+| `limit` | int | `1000` | Max satellites to return (1–6000) |
 
 ### `GET /propagate`
 
-Propagate a satellite orbit using SGP4.
+Propagates a satellite with SGP4 over a time window.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `line1`        | string | — | TLE line 1 |
-| `line2`        | string | — | TLE line 2 |
-| `hours`        | int    | `24` | Hours ahead |
-| `step_minutes` | int    | `10` | Step size in minutes |
+| `line1`, `line2` | string | — | TLE lines |
+| `hours` | int | `24` | Horizon (1–168) |
+| `step_minutes` | int | `10` | Sample step (1–60) |
 
-**Example response:**
-```json
-[
-  {
-    "time": "2024-01-01T12:00:00+00:00",
-    "position_km": { "x": -1234.5, "y": 6789.0, "z": 1234.5 },
-    "velocity_km_s": { "x": -4.5, "y": 1.2, "z": 6.1 },
-    "lat": 51.6,
-    "lon": 29.1,
-    "alt_km": 415.2
-  }
-]
-```
-
----
+Returns timestamped `position_km`, `velocity_km_s`, `lat`, `lon`, `alt_km`.
 
 ### `GET /collision-check`
 
-Check collision risk between two satellites.
+Closest-approach analysis between two satellites.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `line1_a`, `line2_a` | string | — | TLE for satellite A |
-| `line1_b`, `line2_b` | string | — | TLE for satellite B |
+| `line1_a`, `line2_a` | string | — | Satellite A TLE |
+| `line1_b`, `line2_b` | string | — | Satellite B TLE |
 | `hours` | int | `24` | Propagation window |
 
-**Example response:**
+**Example response (shape):**
+
 ```json
 {
   "min_distance_km": 8.34,
@@ -251,146 +195,139 @@ Check collision risk between two satellites.
 }
 ```
 
----
+Risk thresholds: **CRITICAL** &lt; 10 km · **WARNING** &lt; 50 km · **SAFE** otherwise.
 
-### `GET /maneuver-recommend`
+### `GET /asset-scan`
 
-Get AI-generated avoidance maneuver recommendation.
+Screens a primary asset (NORAD catalog number) against a large candidate set for non-SAFE conjunctions.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `line1`, `line2` | string | — | TLE of threatened satellite |
-| `threat_direction_x/y/z` | float | `1,0,0` | Threat direction vector |
-| `threat_distance_km` | float | — | Distance to threat in km |
+| `catnr` | int | — | NORAD catalog number |
+| `hours` | int | `24` | Scan window |
 
-**Example response:**
-```json
-{
-  "maneuver_type": "Cross-Track Avoidance Burn",
-  "burn_direction": { "x": 0.577, "y": -0.816, "z": 0.0 },
-  "delta_v_m_s": 1.842,
-  "estimated_fuel_cost_percent": 0.92,
-  "confidence_score": 0.873,
-  "time_to_execute": "Within 2–4 hours",
-  "new_miss_distance_km": 42.5,
-  "risk_level": "MEDIUM",
-  "explanation": "Threat detected at 8.5 km. Recommended Cross-Track Avoidance Burn..."
-}
-```
+Returns the asset name, scan count, and risks sorted by minimum distance.
+
+### `GET /maneuver-recommend`
+
+Physics-based avoidance recommendation for a threatened satellite.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `line1`, `line2` | string | — | Threatened satellite TLE |
+| `threat_direction_x/y/z` | float | `1, 0, 0` | Threat direction vector |
+| `threat_distance_km` | float | — | Closest-approach distance (km) |
+
+Returns a **primary** recommendation plus **tradeoff** alternatives (e.g. max-separation burn, emergency radial burn), including burn unit vector, Δv (m/s), estimated fuel cost, confidence, and a short explanation.
 
 ---
 
-## 📁 Project Structure
-
 ```
-orbital-guardian/
-├── frontend/                  # React + Three.js
-│   ├── public/index.html
+Orbital-Guardian/
+├── frontend/                         # React + Three.js client
+│   ├── public/
+│   │   ├── index.html
+│   │   └── textures/                 # Earth map assets
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Globe.jsx          # 3D Earth rendering
-│   │   │   ├── SatelliteLayer.jsx # Satellite orbit visualization
-│   │   │   ├── CollisionAlert.jsx # Risk warning panel
-│   │   │   └── ManeuverPanel.jsx  # AI recommendation display
-│   │   ├── App.jsx
-│   │   ├── App.css
+│   │   │   ├── Globe.jsx             # 3D Earth canvas
+│   │   │   ├── SatelliteLayer.jsx    # Fleet markers & highlights
+│   │   │   ├── SatelliteOrbit.jsx    # Trajectory polylines
+│   │   │   ├── AssetMonitor.jsx      # Primary-asset fleet scan UI
+│   │   │   ├── CollisionMonitorPanel.jsx
+│   │   │   ├── ResultsDisplayPanel.jsx
+│   │   │   └── ManeuverPanel.jsx     # Avoidance recommendation UI
+│   │   ├── App.jsx                   # App state & API orchestration
 │   │   └── index.js
-│   ├── package.json
-│   └── .env.example
+│   └── package.json
 ├── backend/
 │   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py               # FastAPI entry point
-│   │   ├── tle_fetcher.py        # Fetch TLE data from Celestrak
-│   │   ├── propagator.py         # SGP4 orbital propagation
-│   │   ├── collision_detector.py # Pairwise closest approach
-│   │   └── maneuver_engine.py    # AI avoidance recommendation
+│   │   ├── main.py                   # FastAPI routes
+│   │   ├── tle_fetcher.py            # Celestrak fetch, cache, fallback
+│   │   ├── propagator.py             # SGP4 propagation
+│   │   ├── collision_detector.py     # Closest-approach & risk labels
+│   │   └── maneuver_engine.py        # Physics-based burn advisor
+│   ├── data/                         # Cache, fallback TLEs, samples
 │   ├── requirements.txt
 │   ├── Dockerfile
 │   └── .env.example
-├── data/
-│   └── sample_tle.txt            # Sample TLE data for offline demo
 ├── .gitignore
 └── README.md
 ```
 
 ---
 
-## 🔬 How It Works
+## How It Works
 
-### Collision Detection
+### Collision screening
 
-1. **Fetch TLE data** — Two-Line Element sets from Celestrak encode orbital parameters.
-2. **SGP4 Propagation** — The SGP4 model integrates orbital mechanics equations to predict
-   satellite positions at any future time, accounting for atmospheric drag and Earth's
-   oblateness.
-3. **Pairwise Analysis** — All satellite pairs are compared at each time step to find the
-   closest approach distance.
-4. **Risk Classification** — Events are classified: **CRITICAL** (< 10 km), **WARNING**
-   (< 50 km), or **SAFE** (≥ 50 km).
+1. **Ingest TLEs** — Two-Line Elements encode mean orbital elements from the public catalog  
+2. **Propagate with SGP4** — Predict TEME position/velocity over the chosen horizon (drag and Earth oblateness effects as modeled by SGP4)  
+3. **Closest approach** — Compare time-aligned samples; record minimum separation and event geometry  
+4. **Classify risk** — Map miss distance to CRITICAL / WARNING / SAFE for the UI and advisor
 
-### AI Maneuver Engine
+### Maneuver advisor (physics-based)
 
-1. **State Vector Extraction** — Current position and velocity from SGP4.
-2. **Threat Geometry** — The threat direction vector is computed from the conjunction data.
-3. **Optimal Burn Direction** — The burn is aligned cross-track (perpendicular to both the
-   velocity and threat vectors) to maximise miss distance gain per unit of delta-v.
-4. **Delta-v Scaling** — Required velocity change scales inversely with threat distance:
-   closer threats require more aggressive burns.
-5. **Fuel & Confidence Estimate** — Fuel consumption is expressed as a percentage of a
-   typical satellite budget; confidence decreases as proximity increases.
+1. **State vector** — Current position and velocity from SGP4  
+2. **Threat geometry** — Direction toward the conjunction partner  
+3. **Burn direction** — Prefer a **cross-track** burn (perpendicular to velocity and threat) to grow miss distance efficiently; fall back to radial when geometry is degenerate  
+4. **Δv scaling** — Closer threats → larger recommended burns  
+5. **Tradeoffs** — Surface primary advice plus higher-Δv / emergency options with fuel and confidence estimates  
+
+This keeps recommendations **interpretable**: an engineer can inspect vectors, thresholds, and Δv rather than trusting an opaque score.
 
 ---
 
-## 📊 Data Sources
+## Data Sources
 
-| Source | Description |
-|--------|-------------|
-| [Celestrak](https://celestrak.org) | Primary source for NORAD TLE data |
-| [Space-Track](https://www.space-track.org) | Official US DoD debris catalog |
+| Source | Role |
+|--------|------|
+| [Celestrak](https://celestrak.org) | Primary live NORAD TLE feeds |
 | NORAD | Two-Line Element catalog standard |
+| Local cache / fallback | Offline and resilience for demos when the network is unavailable |
 
 ---
 
-## 🗺 Roadmap
+## Design Notes & Scope
 
-- [ ] Real-time WebSocket updates for live satellite positions
-- [ ] Integration with Space-Track authenticated API for classified debris
-- [ ] Orekit-based high-fidelity propagation for precise conjunctions
-- [ ] Machine-learning model trained on historical conjunction data
-- [ ] Multi-satellite fleet maneuver optimisation
-- [ ] Kessler Syndrome cascade simulation
-- [ ] Mobile-responsive dashboard
+Orbital Guardian is a **showcase-grade decision-support demo**, not an operational conjunction assessment system. Intentional simplifications include discrete-time sampling for closest approach and a simplified TEME→geodetic conversion for visualization. The architecture is modular so higher-fidelity propagators, finer TCA search, or authenticated catalogs can be swapped in without rewriting the UI.
 
 ---
 
-## 🏆 Hackathon Context
+## Roadmap
 
-Built for the **IIT Hyderabad Hackathon** as a demonstration of applied orbital
-mechanics, real-time data processing, and AI-driven decision support for the
-growing challenge of space debris management.
-
----
-
-## 🤝 Contributing
-
-Pull requests are welcome! For major changes, please open an issue first to
-discuss what you would like to change.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- [ ] WebSocket (or similar) streaming for near-real-time position updates  
+- [ ] Authenticated Space-Track integration for richer debris catalogs  
+- [ ] Higher-fidelity propagation / refined time-of-closest-approach search  
+- [ ] Multi-asset fleet maneuver optimisation  
+- [ ] Automated tests for propagation and conjunction helpers  
+- [ ] Broader mobile-responsive layout polish  
 
 ---
 
-## 📄 License
+## Showcase Context
+
+Built for the **IIT Hyderabad Technical Showcase** to demonstrate applied orbital mechanics, API design, and interactive scientific visualization for space situational awareness — ranked **8th of 389+ teams**.
+
+---
+
+## Contributing
+
+Pull requests are welcome. For larger changes, open an issue first to align on scope.
+
+1. Fork the repository  
+2. Create a feature branch (`git checkout -b feature/your-feature`)  
+3. Commit your changes  
+4. Push the branch and open a Pull Request  
+
+---
+
+## License
 
 This project is licensed under the [MIT License](LICENSE).
 
 ---
 
 <p align="center">
-  Made with ❤️ for safer skies 🌌
+  Built for safer skies.
 </p>
