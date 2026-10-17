@@ -1,0 +1,31 @@
+# Prioritized technical roadmap
+
+Ranked by correctness, user value, feasibility and portfolio evidence. Status is planned at audit completion; delivered work and evidence are updated in VERIFICATION.md.
+
+| Stage / priority | Improvement and product problem | Industry relevance | Complexity | Dependencies / risks | Acceptance criterion | Test / benchmark |
+|---|---|---|---|---|---|---|
+| 1 / P0 | Strict TLE validation; invalid data currently appears valid | Scientific data integrity | Medium | Legacy fallback invalid; do not silently repair it | Bad checksum, mismatched ID, malformed fields rejected; valid cache preserved | Valid/invalid/duplicate ingestion fixtures |
+| 1 / P0 | Shared UTC grid and explicit propagation errors | Reproducible state comparison | Medium | Preserve API response keys; errors must never become SAFE | Same start/time samples; missing results marked unknown | Fixed epoch API tests and mismatched-grid tests |
+| 1 / P0 | GMST Earth rotation and WGS84 geodetic coordinates | Geospatial correctness | Medium | No EOP inputs; UTC approximates UT1 | Reference SGP4 states and Earth rotation invariants within documented tolerances | Vallado vectors, equator/pole and sidereal rotation tests |
+| 1 / P0 | Remove unsupported confidence and validated-burn claims | Responsible decision support | Small | API clients may use legacy fields | Candidate labeled heuristic; no fake Pc/confidence shown | Maneuver response semantics and zero/NaN input tests |
+| 1 / P1 | Provenance + TTL/runtime cache + explicit offline mode | Resilient ingest and freshness | Medium | Per-process cache, atomic local persistence | Source/epoch/retrieval distinguished; warm request performs no network fetch | Network failure, cache corruption, TTL and group tests |
+| 2 / P1 | Linked catalogue and dominant globe workspace | Analyst workflow | Medium | Existing R3F; GPU fallback; no invented classifications | Search/sort/filter/select/inspect works by keyboard and pointer | UI integration tests; desktop/mobile review |
+| 2 / P1 | Conjunction and asset-scan workspaces with honest counts | Transparent assessment | Medium | Sampled minimum not continuous TCA; partial errors | UTC, units, unknowns, scan cap and failed counts visible | Pair/scan API fixtures and UI tests |
+| 2 / P2 | Discrete forecast scrubber and layer controls | Temporal exploration | Medium | Forecast samples only, no live stream | Selected marker follows returned time sample; label fixed catalog epoch | First/last sample interaction regression |
+| 2 / P1 | CI, deployment instructions, reproducible checks | Reliable scientific software | Small | Old CRA toolchain remains debt | Tests/lint/build pass on documented versions | GitHub Actions and clean install |
+| 3 / P2 | Refine all candidate local minima with bounded adaptive SGP4 evaluations | Accurate TCA search | Large | Coarse samples can miss minima; independent truth needed | <1 s TCA and <0.1 km distance error on declared benchmark domain | Dense-grid oracle corpus incl. grazing/high-relative-speed encounters |
+| 3 / P2 | Conservative radial-envelope / spatial broad phase | Catalog scalability | Large | Never discard valid encounters; eccentric orbits and long windows | 100% recall vs exhaustive reference corpus; report p50/p95 time and memory at 1k/10k | Deterministic catalog benchmark, false-negative audit |
+| 3 / P2 | Versioned catalog and analysis persistence; background ingest | Reproducibility and near-real-time processing | Medium | DB schema, provider terms, migrations and retention | Replay produces identical inputs; failed ingest preserves last valid snapshot | Restart/retry/idempotence and latency tests |
+| 3 / P2 | Observability, queue, rate limits and cancellation | Reliable shared services | Medium | Hosting limits, synchronous CPU work | Queue saturation returns controlled 429/503; metrics expose age/errors/p95 | Concurrent-load/worker-failure tests |
+| 4 / P2 | CDM ingestion and uncertainty-aware Pc | Conjunction uncertainty | Large | Covariance frame/time/units, positive definiteness, hard-body radii, encounter assumptions | Published cases reproduced; unsupported covariance explicitly rejected | Independent analytical/numerical Pc cases and Monte Carlo validation |
+| 4 / P2 | Impulsive maneuver what-if | Operator decision support | Large | State transition, burn epoch, force model, mass/Isp and constraints | Baseline + candidate trajectories re-screened; no autonomy | Zero-impulse equivalence and independent integrator comparison |
+| 4 / P3 | Orbit determination / tracking quality | Sensor-informed catalog maintenance | Large | Real timestamped observations and station metadata, measurement noise | Held-out residuals and calibrated covariance reported | Synthetic truth recovery then licensed observation validation |
+| 4 / P3 | Historical conjunctions and anomaly detection | Explainable orbital events | Large | Versioned history; distinguish data updates from physical maneuvers | Replay and labeled precision/recall; no unexplained anomaly scores | Temporal holdout and data-discontinuity cases |
+
+Do not add Kubernetes, streaming brokers, ML or a database merely for appearance. Introduce them when measured workload or reproducibility requirements justify them. Do not deploy as part of this task.
+
+## Delivery status at handoff
+
+Stages 1 and 2 have an implemented foundation: strict validation, shared UTC grids, approximate Earth-frame correction, honest candidate semantics, separate TTL cache/provenance, catalogue/globe linkage, pair and capped asset workflows, forecast scrubber, tests and CI configuration. See VERIFICATION.md for executed checks. Browser visual/accessibility/end-to-end verification is still outstanding, so Stage 2 is not accepted as fully complete. No Stage 3 or Stage 4 capability has been implemented. No hosted CI run or deployment has been verified.
+
+Immediate completion work: inspect the running desktop/mobile interface, test real HTTP workflows and negative states, review security/dependency compatibility, verify Docker and deployment configuration, and address regressions before considering advanced scientific scope.

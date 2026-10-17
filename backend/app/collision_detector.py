@@ -37,10 +37,14 @@ def calculate_closest_approach(
     """
     if not positions_a or not positions_b:
         return {
-            "min_distance_km": float("inf"),
-            "risk_level": "SAFE",
+            "min_distance_km": None,
+            "risk_level": "UNKNOWN",
             "closest_event": None,
+            "method": "sampled separation",
         }
+
+    if len(positions_a) != len(positions_b) or any(a["time"] != b["time"] for a, b in zip(positions_a, positions_b)):
+        raise ValueError("State series must have identical timestamps; incomplete grids cannot be screened.")
 
     min_distance = float("inf")
     closest_event: Optional[dict] = None
@@ -54,13 +58,17 @@ def calculate_closest_approach(
             [pb["position_km"]["x"], pb["position_km"]["y"], pb["position_km"]["z"]],
             dtype=float,
         )
+        if not np.all(np.isfinite(pos_a)) or not np.all(np.isfinite(pos_b)):
+            raise ValueError("Non-finite state cannot be screened.")
         distance = float(np.linalg.norm(pos_a - pos_b))
 
         if distance < min_distance:
             min_distance = distance
             closest_event = {
                 "time": pa["time"],
-                "distance_km": round(distance, 3),
+                "distance_km": round(distance, 6),
+                "relative_velocity_km_s": float(np.linalg.norm(
+                    np.array(list(pa["velocity_km_s"].values())) - np.array(list(pb["velocity_km_s"].values())))),
                 "position_a": pa["position_km"],
                 "position_b": pb["position_km"],
                 "location_a": {"lat": pa["lat"], "lon": pa["lon"], "alt_km": pa["alt_km"]},
@@ -70,9 +78,13 @@ def calculate_closest_approach(
     risk_level = _classify_risk(min_distance, threshold_km)
 
     return {
-        "min_distance_km": round(min_distance, 3) if min_distance != float("inf") else None,
+        "min_distance_km": round(min_distance, 6) if min_distance != float("inf") else None,
         "risk_level": risk_level,
         "closest_event": closest_event,
+        "method": "sampled separation; not continuous TCA",
+        "probability_of_collision": None,
+        "sample_count": len(positions_a),
+        "frame": "TEME",
         "path_a": positions_a,
         "path_b": positions_b,
     }

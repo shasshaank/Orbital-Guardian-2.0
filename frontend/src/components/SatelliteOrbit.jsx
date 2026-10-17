@@ -1,17 +1,15 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import * as THREE from "three";
 import { Html } from "@react-three/drei";
 
 export function latLonAltToVec3(lat, lon, altKm) {
-  const EARTH_RADIUS_KM = 6371;
-  const GLOBE_RADIUS = 1;
-  const r = GLOBE_RADIUS * (1 + altKm / EARTH_RADIUS_KM);
-  const phi = ((90 - lat) * Math.PI) / 180;
-  const theta = ((lon + 180) * Math.PI) / 180;
+  const a = 6378.137, e2 = 0.00669437999014;
+  const phi = lat * Math.PI / 180, lambda = lon * Math.PI / 180;
+  const n = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
   return new THREE.Vector3(
-    -r * Math.sin(phi) * Math.cos(theta),
-    r * Math.cos(phi),
-    r * Math.sin(phi) * Math.sin(theta)
+    (n + altKm) * Math.cos(phi) * Math.cos(lambda) / a,
+    (n * (1 - e2) + altKm) * Math.sin(phi) / a,
+    -(n + altKm) * Math.cos(phi) * Math.sin(lambda) / a
   );
 }
 
@@ -23,6 +21,8 @@ export default function SatelliteOrbit({ path, color = "#4fc3f7" }) {
     );
     return new THREE.BufferGeometry().setFromPoints(points);
   }, [path]);
+
+  useEffect(() => () => geometry.dispose(), [geometry]);
 
   return (
     <line geometry={geometry}>

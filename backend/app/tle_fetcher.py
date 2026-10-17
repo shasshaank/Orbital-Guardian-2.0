@@ -1,112 +1,149 @@
-"""
-TLE Data Fetcher for Orbital Guardian.
-
-Fetches Two-Line Element (TLE) orbital data from the Celestrak API.
-"""
-
-import os
+"""Validated public catalog ingestion with per-group TTL and isolated runtime cache."""
 import json
-import requests
+import logging
+import os
+import re
+import tempfile
+import time
+from datetime import datetime, timezone
 from pathlib import Path
+from threading import Lock
 from typing import Optional
+import requests
+from dotenv import load_dotenv
+from .orbital_data import element_metadata
 
-# Path to local cache and fallback data
-DATA_DIR = Path(__file__).parent.parent / "data"
-CACHE_FILE = DATA_DIR / "tle_cache.json"
-FALLBACK_FILE = DATA_DIR / "satellites_fallback.json"
+load_dotenv(Path(__file__).resolve().parent.parent / '.env')
+DATA_DIR = Path(__file__).resolve().parent.parent / 'data'
+CACHE_FILE = DATA_DIR / 'tle_cache.json'  # read-only legacy fixture
+FALLBACK_FILE = DATA_DIR / 'satellites_fallback.json'
+RUNTIME_DIR = Path(os.getenv('ORBITAL_CACHE_DIR', str(DATA_DIR / 'runtime')))
+BASE_URL = os.getenv('CELESTRAK_BASE_URL', 'https://celestrak.org/NORAD/elements/gp.php')
+TTL_SECONDS = 900
+_memory = {}
+_lock = Lock()
+logger = logging.getLogger(__name__)
 
 
-# Primary sources for TLE data
-SOURCES = [
-    "https://celestrak.org/NORAD/elements/active.txt",
-    "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle",
-    "https://www.celestrak.com/NORAD/elements/active.txt",
-]
-
-def fetch_tle_data(group: str = "active", fmt: str = "tle") -> list[dict]:
-    """
-    Fetch TLE data from multiple Celestrak sources with caching and fallback.
-    """
-    print(f"📡 Orbital Guardian: Attempting to sync satellite fleet...")
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "*/*",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Connection": "keep-alive",
-    }
-    
-    # 1. Try each source in order
-    for url in SOURCES:
+def validate_records(records):
+    accepted, seen, rejected, duplicates = [], set(), 0, 0
+    if not isinstance(records, list):
+        raise ValueError('Catalog must be an array.')
+    for record in records:
         try:
-            # If the URL is already specific to a group, use it as is, otherwise add params
-            target_url = url
-            if "gp.php" in url and "GROUP=" not in url:
-                target_url = f"{url}?GROUP={group}&FORMAT={fmt}"
-            
-            response = requests.get(target_url, headers=headers, timeout=20, verify=False)
-            response.raise_for_status()
-            
-            text = response.text
-            if "1 " in text and "2 " in text:
-                lines = [l.strip() for l in text.strip().splitlines() if l.strip()]
-                satellites = []
-                for i in range(0, len(lines) - 2, 3):
-                    if lines[i+1].startswith("1 ") and lines[i+2].startswith("2 "):
-                        satellites.append({
-                            "name": lines[i],
-                            "line1": lines[i+1],
-                            "line2": lines[i+2],
-                        })
-                
-                if satellites:
-                    # Update cache
-                    DATA_DIR.mkdir(exist_ok=True)
-                    with open(CACHE_FILE, "w") as f:
-                        json.dump(satellites, f)
-                    return satellites
-        except Exception as e:
-            print(f"❌ Failed to fetch from {url}: {e}")
-            continue
+            line1, line2 = record['line1'], record['line2']
+            metadata = element_metadata(line1, line2)
+            key = metadata['norad_id']
+            if key in seen:
+                duplicates += 1
+                continue
+            seen.add(key)
+            accepted.append(dict(name=str(record.get('name') or key).removeprefix('0 ').strip(),
+                                 line1=line1, line2=line2))
+        except (ValueError, KeyError, TypeError, IndexError, OverflowError):
+            rejected += 1
+    return accepted, rejected, duplicates
 
-    # 2. If all sources failed, try cache
-    if CACHE_FILE.exists():
-        try:
-            with open(CACHE_FILE, "r") as f:
-                return json.load(f)
-        except:
-            pass
 
-    # 3. If cache failed, try fallback
-    if FALLBACK_FILE.exists():
-        try:
-            with open(FALLBACK_FILE, "r") as f:
-                return json.load(f)
-        except:
-            pass
+def parse_tle(text):
+    lines = [line.rstrip() for line in text.splitlines() if line.strip()]
+    records = []
+    name = None
+    i = 0
+    while i < len(lines):
+        if lines[i].startswith('1 ') and i+1 < len(lines) and lines[i+1].startswith('2 '):
+            records.append(dict(name=name or lines[i][2:7], line1=lines[i], line2=lines[i+1]))
+            name = None; i += 2
+        else:
+            name = lines[i]; i += 1
+    return validate_records(records)
 
-    return []
+
+def _read_cache(path, legacy=False):
+    try:
+        raw = json.loads(path.read_text())
+        records = raw if legacy else raw['records']
+        valid, rejected, duplicates = validate_records(records)
+        if valid:
+            return dict(records=valid, retrieved_at=None if legacy else raw.get('retrieved_at'),
+                        source='Celestrak legacy cache' if legacy else raw.get('source', 'Celestrak'),
+                        rejected_records=rejected, duplicate_records=duplicates)
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return None
+
+
+def _persist(path, payload):
+    RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+    temp_name = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', dir=RUNTIME_DIR, delete=False) as file:
+            temp_name = file.name
+            json.dump(payload, file, allow_nan=False)
+        os.replace(temp_name, path)
+    finally:
+        if temp_name and os.path.exists(temp_name):
+            os.unlink(temp_name)
+
+
+def get_catalog(group='active'):
+    if not re.fullmatch(r'[a-zA-Z0-9_-]{1,40}', group):
+        raise ValueError('Invalid catalog group.')
+    with _lock:
+        now = time.monotonic()
+        if group in _memory and now < _memory[group][0]:
+            return _memory[group][1]
+        path = RUNTIME_DIR / f'{group}.json'
+        disk = _read_cache(path)
+        if disk and disk['retrieved_at']:
+            try:
+                age = (datetime.now(timezone.utc)-datetime.fromisoformat(disk['retrieved_at'])).total_seconds()
+                if 0 <= age < TTL_SECONDS:
+                    payload = dict(disk, mode='cache', group=group, last_error=None)
+                    _memory[group] = (now + TTL_SECONDS-age, payload)
+                    return payload
+            except (ValueError, TypeError):
+                pass
+        error = None
+        if os.getenv('ORBITAL_OFFLINE', '0') != '1':
+            try:
+                if not BASE_URL.startswith('https://'):
+                    raise ValueError('Catalog source must use HTTPS.')
+                response = requests.get(BASE_URL, params={'GROUP': group, 'FORMAT': 'tle'},
+                                        timeout=(3, 8), headers={'User-Agent': 'OrbitalGuardian/2.0'})
+                response.raise_for_status()
+                records, rejected, duplicates = parse_tle(response.text)
+                if not records:
+                    raise ValueError('Source returned no valid TLE records.')
+                payload = dict(records=records, source='Celestrak', mode='live', group=group,
+                               retrieved_at=datetime.now(timezone.utc).isoformat(),
+                               rejected_records=rejected, duplicate_records=duplicates, last_error=None)
+                try:
+                    _persist(path, payload)
+                except OSError:
+                    payload['last_error'] = 'Runtime cache could not be persisted.'
+                _memory[group] = (now+TTL_SECONDS, payload)
+                return payload
+            except (requests.RequestException, ValueError):
+                error = 'Live catalog request failed; using validated local data if available.'
+                logger.warning('Catalog retrieval failed for group %s', group)
+        else:
+            error = 'Offline mode: no live source request attempted.'
+        # Legacy records are known to be from active, never substitute for another group.
+        fallback = disk or (_read_cache(CACHE_FILE, True) if group == 'active' else None)
+        if not fallback and group == 'active':
+            fallback = _read_cache(FALLBACK_FILE, True)
+        payload = dict(fallback or dict(records=[], source='unavailable', retrieved_at=None,
+                                       rejected_records=0, duplicate_records=0),
+                       mode='offline' if os.getenv('ORBITAL_OFFLINE') == '1' else 'fallback',
+                       group=group, last_error=error)
+        _memory[group] = (now+60, payload)  # short failure backoff, no request storm
+        return payload
+
+
+def fetch_tle_data(group='active', fmt='tle'):
+    return get_catalog(group)['records']
+
 
 def fetch_tle_by_catnr(catnr: int) -> Optional[dict]:
-    """
-    Fetch TLE data for a single satellite by its NORAD catalog number.
-    """
-    headers = {"User-Agent": "Mozilla/5.0"}
-    url = f"https://celestrak.org/NORAD/elements/gp.php?CATNR={catnr}&FORMAT=tle"
-    try:
-        response = requests.get(url, headers=headers, timeout=10, verify=False)
-        if response.status_code == 200:
-            lines = [l.strip() for l in response.text.strip().splitlines() if l.strip()]
-            if len(lines) >= 3 and lines[1].startswith("1 "):
-                return {"name": lines[0], "line1": lines[1], "line2": lines[2]}
-    except:
-        pass
-    
-    # Fallback to local search
-    all_sats = fetch_tle_data()
-    # Simple check: catnr is in the first 5 chars of line 1
-    catnr_str = f"{catnr:05d}"
-    for sat in all_sats:
-        if catnr_str in sat["line1"]:
-            return sat
-            
-    return None
+    return next((s for s in fetch_tle_data() if element_metadata(s['line1'], s['line2'])['norad_id'] == catnr), None)

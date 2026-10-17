@@ -1,333 +1,120 @@
-# Orbital Guardian
+# Orbital Guardian 2.0
 
-### Ranked **8th of 389+ teams** — IIT Hyderabad Technical Showcase (Mar 2026)
+An independent public-TLE orbital research workspace built with React, Three.js and FastAPI. Explore a catalogue, inspect predicted trajectories, compare sampled separations and examine explicitly unvalidated manoeuvre candidates.
 
-> **Physics-driven space debris collision prediction and avoidance system**
+The original project records an **8th-place finish among 389+ teams at the IIT Hyderabad Technical Showcase (March 2026)**. This iteration preserves its SGP4/FastAPI foundation while improving data validation, scientific transparency and analytical usability.
 
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![Python](https://img.shields.io/badge/Python-3.11-green.svg)
-![React](https://img.shields.io/badge/React-18-61dafb.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg)
-![Three.js](https://img.shields.io/badge/Three.js-r160-black.svg)
+## What is implemented
 
----
+- Validated CelesTrak TLE ingestion with checksum/format checking, deduplication, bounded HTTPS requests and per-group caching.
+- Explicit source, retrieval time, element epoch, snapshot time, freshness policy and propagation failures.
+- Interactive Earth-fixed globe with instanced markers, shared catalogue selection, layer controls and a discrete two-hour forecast scrubber.
+- Searchable, sortable and filterable catalogue; selected-object element details.
+- Pair screening on a shared UTC grid with relative speed, sampled-separation plot and reproducible inputs.
+- Primary-asset screening against the first 500 active-catalogue candidates, with attempted/successful/failed counts.
+- Heuristic manoeuvre candidates with no fabricated confidence, fuel consumption or post-burn separation.
+- Scientific reference tests, API/input regressions, frontend interaction tests and GitHub Actions configuration.
 
-## Awards & Recognition
+## Run locally
 
-- **8th place out of 389+ teams** at the **IIT Hyderabad Technical Showcase** (March 2026)
-- Presented a working end-to-end collision detection and avoidance demo to **IIT faculty and industry evaluators**
-- Recognized for combining **live NORAD/Celestrak TLE ingestion**, **SGP4 orbital propagation**, and a **physics-based maneuver advisor** in an interactive 3D interface
-
----
-
-## Overview
-
-Low Earth Orbit is increasingly congested. Tens of thousands of tracked objects — and millions of smaller fragments — travel at orbital velocities where even centimetre-scale debris can disable a satellite. Operators need more than raw catalogs: they need trajectory forecasts, conjunction risk, and actionable avoidance guidance.
-
-**Orbital Guardian** is a full-stack decision-support demo that closes that loop:
-
-1. Ingest live Two-Line Element (TLE) data from public catalogs  
-2. Propagate orbits with the industry-standard **SGP4** model  
-3. Detect closest-approach events and classify risk  
-4. Recommend avoidance burns using orbital geometry (cross-track / radial heuristics)  
-5. Visualize the fleet, selected conjunctions, and trajectories on an interactive **Three.js** Earth
-
-The system is designed as a transparent, explainable pipeline — every recommendation is grounded in orbital mechanics and state vectors, not a black-box model.
-
----
-
-## Problem
-
-| Challenge | Why it matters |
-|-----------|----------------|
-| **Scale** | Thousands of active satellites and debris objects interact across altitudes and planes; pairwise screening is computationally demanding |
-| **Static tooling** | Many tools surface warnings without clear operator guidance on *what burn to plan* |
-| **Maneuver tradeoffs** | Avoidance burns must balance miss distance, fuel (Δv budget), and mission constraints |
-| **Mega-constellations** | Dense LEO fleets raise conjunction rates and the long-term risk of cascade events (Kessler Syndrome) |
-
----
-
-## Key Capabilities
-
-| Capability | What it does |
-|------------|--------------|
-| **Interactive 3D orbital visualization** | React Three Fiber globe with live satellite markers, selection highlighting, and rendered trajectory arcs |
-| **Live TLE ingestion** | Fetches NORAD TLEs from Celestrak, with local cache and offline fallback for resilient demos |
-| **SGP4 propagation** | Predicts position/velocity hours ahead; exposes TEME Cartesian state and geodetic lat/lon/alt |
-| **Pairwise collision screening** | Time-aligned closest-approach analysis with **CRITICAL / WARNING / SAFE** thresholds |
-| **Strategic asset monitor** | Scans a primary satellite (by NORAD catalog number) against a large candidate fleet for non-SAFE conjunctions |
-| **Physics-based maneuver advisor** | Recommends burn direction, Δv, estimated fuel cost, confidence, and tradeoff options (e.g. max separation vs emergency radial) |
-
----
-
-## System Architecture
-
-```
-┌────────────────────────────────────────────────────────────────────┐
-│                         ORBITAL GUARDIAN                           │
-│                                                                    │
-│   ┌──────────────┐    ┌─────────────────────────────────────────┐ │
-│   │  Data Layer  │    │            Backend (FastAPI)            │ │
-│   │              │───▶│  tle_fetcher  →  propagator             │ │
-│   │  Celestrak   │    │       ↓                 ↓               │ │
-│   │  (NORAD TLE) │    │  collision_detector  maneuver_engine    │ │
-│   └──────────────┘    └──────────────────┬──────────────────────┘ │
-│                                          │ REST API               │
-│                        ┌─────────────────▼──────────────────────┐ │
-│                        │     Frontend (React + Three.js)        │ │
-│                        │  Globe · SatelliteLayer · AssetMonitor │ │
-│                        │  CollisionMonitor · ManeuverPanel      │ │
-│                        └────────────────────────────────────────┘ │
-└────────────────────────────────────────────────────────────────────┘
-```
-
-**Pipeline:** Catalog TLEs → SGP4 state vectors → closest-approach geometry → risk labels → maneuver heuristics → 3D visualization and operator panels.
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | React 18, Tailwind CSS, Three.js (`@react-three/fiber`, `@react-three/drei`) |
-| **Backend** | Python 3.11, FastAPI, Uvicorn |
-| **Orbital mechanics** | SGP4 (`sgp4`), NumPy |
-| **Data** | Celestrak / NORAD Two-Line Elements |
-| **Ops** | Docker (API image), environment-based API URL for deployment (e.g. Render) |
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.11+
-- Node.js 18+ and npm
-- (Optional) Docker
-
-### Backend
+Use Python **3.11** (the pinned NumPy version is not intended for Python 3.13) and Node **22** with npm. Run from the repository root:
 
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python3.11 -m venv backend/.venv
+backend/.venv/bin/pip install -r backend/requirements-dev.txt
+cd frontend
+npm ci
+cd ..
 ```
 
-- API: `http://localhost:8000`  
-- Interactive docs: `http://localhost:8000/docs`
+Terminal 1 — deterministic offline demonstration using validated bundled elements:
 
-### Frontend
+```bash
+ORBITAL_OFFLINE=1 backend/.venv/bin/uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+```
+
+Terminal 2:
 
 ```bash
 cd frontend
-npm install
-cp .env.example .env
 npm start
 ```
 
-App: `http://localhost:3000`  
-Set `REACT_APP_API_URL` in `.env` to point at your backend (local or deployed).
+Open http://localhost:3000. API documentation: http://localhost:8000/docs.
 
-### Docker (backend)
+For live retrieval, omit `ORBITAL_OFFLINE=1`. Optional configuration is documented in `backend/.env.example`; copy it to `backend/.env` to customize. The backend loads this file. The frontend defaults to `http://localhost:8000`; set `REACT_APP_API_URL` in `frontend/.env` before building to use another API. No credentials are needed for public CelesTrak data.
+
+The bundled catalogue contains **June 2026 elements**; it is intentionally reported as stale at current dates. Retrieval time is unknown. Invalid legacy fallback records are rejected, not repaired or relabeled live. Freshness uses a visible seven-day heuristic, not an accuracy guarantee.
+
+## Verify
+
+```bash
+backend/.venv/bin/python -m unittest discover -s backend/tests -v
+ORBITAL_OFFLINE=1 backend/.venv/bin/python -m backend.scripts.benchmark
+cd frontend
+npm run lint
+CI=true npm run test:ci
+CI=true GENERATE_SOURCEMAP=false npm run build
+```
+
+`GENERATE_SOURCEMAP=false` avoids an existing third-party MediaPipe missing-source-map warning during CRA builds. No TypeScript/type-check command exists. See [verification evidence](docs/VERIFICATION.md) for actual results and unverified browser behavior.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  C[CelesTrak public TLE feed] --> V[Strict format / checksum / ID validation]
+  F[Read-only legacy catalogue] --> V
+  V --> R[Per-group TTL / atomic runtime cache]
+  R --> API[FastAPI REST API]
+  API --> P[SGP4 / shared UTC grid / TEME km and km/s]
+  P --> G[GMST Earth rotation / WGS84 display coordinates]
+  P --> S[Sampled separation and relative velocity]
+  P --> M[Heuristic candidate geometry]
+  G --> UI[React shared catalogue state]
+  S --> UI
+  M --> UI
+  UI --> E[R3F Earth / instanced markers / forecast paths]
+  UI --> A[Catalogue / inspector / analysis / source status]
+```
+
+`frontend/src/index.js` mounts `App.jsx`. `backend/app/main.py` owns the REST routes. `orbital_data.py` validates elements, `tle_fetcher.py` handles ingestion/cache, `propagator.py` computes states, `collision_detector.py` compares aligned samples, and `maneuver_engine.py` returns candidate geometry. There is no database, radar feed, trained AI model or background monitoring service.
+
+## API compatibility and changes
+
+Existing route names are preserved: `/health`, `/satellites`, `/propagate`, `/collision-check`, `/asset-scan`, `/maneuver-recommend`. `/catalog` adds an envelope with `objects` and `metadata`; `/satellites` retains its list shape with additive metadata fields.
+
+- Propagation accepts an optional timezone-aware `start_time`; endpoints include the final forecast sample. Invalid TLEs return 422.
+- Pair screening accepts `start_time` and `step_minutes` (default 1); selecting the same catalog object twice returns 422. Results preserve `path_a`, `path_b`, `min_distance_km`, `risk_level` and `closest_event`.
+- Empty comparison results are `UNKNOWN` with null distance, never `SAFE` or infinity. Unequal/misaligned grids are rejected.
+- Asset lookup uses exact NORAD matching in the validated active catalogue; arbitrary direct-by-ID CelesTrak lookup is no longer attempted. Objects outside that catalogue return 404.
+- Maneuver fields `confidence_score`, `estimated_fuel_cost_percent` and `new_miss_distance_km` are retained but **null**. Candidate `risk_level` is `UNVALIDATED`. Clients must handle these deliberate correctness changes. An optional `event_time` aligns candidate geometry with the encounter sample.
+- Default CORS allows only localhost frontend origins. For existing production hosting, set `CORS_ORIGINS=https://orbital-guardian-2-0-1.onrender.com` (comma-separated if adding origins). **No deployment has been performed.** Frontend and backend must be released together because the new frontend uses `/catalog`.
+
+## Docker
 
 ```bash
 cd backend
 docker build -t orbital-guardian-api .
-docker run -p 8000:8000 orbital-guardian-api
+docker run --rm -p 8000:8000 -e ORBITAL_OFFLINE=1 orbital-guardian-api
 ```
 
----
+The image now includes bundled data and excludes virtualenv/secrets/runtime cache. Runtime catalogs are written under `backend/data/runtime` locally, or `/app/data/runtime` in Docker. `ORBITAL_CACHE_DIR` can select a writable persistent directory. In-memory caches are per process; no distributed cache coordination exists. The Docker build itself remains unverified in this environment.
 
-## API Reference
+## Scientific limits
 
-### `GET /health`
+This is research/demo software, not operational collision avoidance. SGP4 uses WGS72 dynamics. Display geodesy uses WGS84, GMST, UTC approximating UT1 and no polar motion. The globe is Earth-fixed; forecast paths are not inertial conic orbits. Only the selected object advances when scrubbing; other markers remain at the catalogue snapshot.
 
-```json
-{ "status": "ok", "service": "Orbital Guardian API" }
-```
+One-minute separation sampling can miss encounters between samples. The API's legacy `SAFE` band means “above the sampled threshold,” not guaranteed safety. No covariance, hard-body radius, probability of collision, orbit determination, historical observations or validated maneuver optimization is available. A valid checksum does not guarantee accurate or recent orbital elements.
 
-### `GET /satellites`
+## Assessment and next work
 
-Fetches TLE data and returns current geodetic positions.
+- [Repository audit and baseline](docs/PROJECT_AUDIT.md)
+- [Product gap analysis](docs/PRODUCT_GAP_ANALYSIS.md)
+- [LeoLabs public-material alignment](docs/LEOLABS_ALIGNMENT.md)
+- [Prioritized technical roadmap](docs/TECHNICAL_ROADMAP.md)
+- [Verification and outstanding work](docs/VERIFICATION.md)
+- [Visual assets and licenses](docs/VISUAL_ASSETS.md)
+- [GitHub handoff and continuation prompt](docs/HANDOFF.md)
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `group` | string | `active` | Celestrak satellite group |
-| `limit` | int | `1000` | Max satellites to return (1–6000) |
-
-### `GET /propagate`
-
-Propagates a satellite with SGP4 over a time window.
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `line1`, `line2` | string | — | TLE lines |
-| `hours` | int | `24` | Horizon (1–168) |
-| `step_minutes` | int | `10` | Sample step (1–60) |
-
-Returns timestamped `position_km`, `velocity_km_s`, `lat`, `lon`, `alt_km`.
-
-### `GET /collision-check`
-
-Closest-approach analysis between two satellites.
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `line1_a`, `line2_a` | string | — | Satellite A TLE |
-| `line1_b`, `line2_b` | string | — | Satellite B TLE |
-| `hours` | int | `24` | Propagation window |
-
-**Example response (shape):**
-
-```json
-{
-  "min_distance_km": 8.34,
-  "risk_level": "CRITICAL",
-  "closest_event": {
-    "time": "2024-01-01T15:30:00+00:00",
-    "distance_km": 8.34,
-    "position_a": { "x": -1234.5, "y": 6789.0, "z": 1234.5 },
-    "position_b": { "x": -1230.0, "y": 6782.0, "z": 1228.0 }
-  }
-}
-```
-
-Risk thresholds: **CRITICAL** &lt; 10 km · **WARNING** &lt; 50 km · **SAFE** otherwise.
-
-### `GET /asset-scan`
-
-Screens a primary asset (NORAD catalog number) against a large candidate set for non-SAFE conjunctions.
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `catnr` | int | — | NORAD catalog number |
-| `hours` | int | `24` | Scan window |
-
-Returns the asset name, scan count, and risks sorted by minimum distance.
-
-### `GET /maneuver-recommend`
-
-Physics-based avoidance recommendation for a threatened satellite.
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `line1`, `line2` | string | — | Threatened satellite TLE |
-| `threat_direction_x/y/z` | float | `1, 0, 0` | Threat direction vector |
-| `threat_distance_km` | float | — | Closest-approach distance (km) |
-
-Returns a **primary** recommendation plus **tradeoff** alternatives (e.g. max-separation burn, emergency radial burn), including burn unit vector, Δv (m/s), estimated fuel cost, confidence, and a short explanation.
-
----
-
-```
-Orbital-Guardian/
-├── frontend/                         # React + Three.js client
-│   ├── public/
-│   │   ├── index.html
-│   │   └── textures/                 # Earth map assets
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Globe.jsx             # 3D Earth canvas
-│   │   │   ├── SatelliteLayer.jsx    # Fleet markers & highlights
-│   │   │   ├── SatelliteOrbit.jsx    # Trajectory polylines
-│   │   │   ├── AssetMonitor.jsx      # Primary-asset fleet scan UI
-│   │   │   ├── CollisionMonitorPanel.jsx
-│   │   │   ├── ResultsDisplayPanel.jsx
-│   │   │   └── ManeuverPanel.jsx     # Avoidance recommendation UI
-│   │   ├── App.jsx                   # App state & API orchestration
-│   │   └── index.js
-│   └── package.json
-├── backend/
-│   ├── app/
-│   │   ├── main.py                   # FastAPI routes
-│   │   ├── tle_fetcher.py            # Celestrak fetch, cache, fallback
-│   │   ├── propagator.py             # SGP4 propagation
-│   │   ├── collision_detector.py     # Closest-approach & risk labels
-│   │   └── maneuver_engine.py        # Physics-based burn advisor
-│   ├── data/                         # Cache, fallback TLEs, samples
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── .env.example
-├── .gitignore
-└── README.md
-```
-
----
-
-## How It Works
-
-### Collision screening
-
-1. **Ingest TLEs** — Two-Line Elements encode mean orbital elements from the public catalog  
-2. **Propagate with SGP4** — Predict TEME position/velocity over the chosen horizon (drag and Earth oblateness effects as modeled by SGP4)  
-3. **Closest approach** — Compare time-aligned samples; record minimum separation and event geometry  
-4. **Classify risk** — Map miss distance to CRITICAL / WARNING / SAFE for the UI and advisor
-
-### Maneuver advisor (physics-based)
-
-1. **State vector** — Current position and velocity from SGP4  
-2. **Threat geometry** — Direction toward the conjunction partner  
-3. **Burn direction** — Prefer a **cross-track** burn (perpendicular to velocity and threat) to grow miss distance efficiently; fall back to radial when geometry is degenerate  
-4. **Δv scaling** — Closer threats → larger recommended burns  
-5. **Tradeoffs** — Surface primary advice plus higher-Δv / emergency options with fuel and confidence estimates  
-
-This keeps recommendations **interpretable**: an engineer can inspect vectors, thresholds, and Δv rather than trusting an opaque score.
-
----
-
-## Data Sources
-
-| Source | Role |
-|--------|------|
-| [Celestrak](https://celestrak.org) | Primary live NORAD TLE feeds |
-| NORAD | Two-Line Element catalog standard |
-| Local cache / fallback | Offline and resilience for demos when the network is unavailable |
-
----
-
-## Design Notes & Scope
-
-Orbital Guardian is a **showcase-grade decision-support demo**, not an operational conjunction assessment system. Intentional simplifications include discrete-time sampling for closest approach and a simplified TEME→geodetic conversion for visualization. The architecture is modular so higher-fidelity propagators, finer TCA search, or authenticated catalogs can be swapped in without rewriting the UI.
-
----
-
-## Roadmap
-
-- [ ] WebSocket (or similar) streaming for near-real-time position updates  
-- [ ] Authenticated Space-Track integration for richer debris catalogs  
-- [ ] Higher-fidelity propagation / refined time-of-closest-approach search  
-- [ ] Multi-asset fleet maneuver optimisation  
-- [ ] Automated tests for propagation and conjunction helpers  
-- [ ] Broader mobile-responsive layout polish  
-
----
-
-## Showcase Context
-
-Built for the **IIT Hyderabad Technical Showcase** to demonstrate applied orbital mechanics, API design, and interactive scientific visualization for space situational awareness — ranked **8th of 389+ teams**.
-
----
-
-## Contributing
-
-Pull requests are welcome. For larger changes, open an issue first to align on scope.
-
-1. Fork the repository  
-2. Create a feature branch (`git checkout -b feature/your-feature`)  
-3. Commit your changes  
-4. Push the branch and open a Pull Request  
-
----
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-<p align="center">
-  Built for safer skies.
-</p>
+The project has no affiliation with LeoLabs. Its relevance is in catalog quality, scientific computation, transparent analysis and testing, not replication of proprietary sensing systems. The previous README referenced an MIT license, but no root LICENSE file is present; repository-wide licensing remains to be resolved by the owner. The included Space Grotesk font has its own OFL license.

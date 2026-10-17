@@ -1,385 +1,55 @@
-"""
-AI Maneuver Recommendation Engine for Orbital Guardian.
+"""Illustrative maneuver geometry, not optimization or validated flight guidance.
 
-Given TLE data for the threatened satellite and the direction/distance of the
-incoming threat, computes an optimal avoidance burn recommendation.
+The legacy distance-to-delta-v mapping is retained for demonstration. Unsupported
+confidence, fuel and post-burn separation fields remain present but null.
 """
-
 import math
 import numpy as np
-from typing import TypedDict
-
 from .propagator import get_current_position
 
 
-# --------------------------------------------------------------------------- #
-# Types
-# --------------------------------------------------------------------------- #
-
-class ManeuverRecommendation(TypedDict):
-    maneuver_type: str
-    burn_direction: dict        # {"x": float, "y": float, "z": float} – unit vector
-    delta_v_m_s: float          # magnitude of the velocity change in m/s
-    estimated_fuel_cost_percent: float
-    confidence_score: float     # 0.0 – 1.0
-    time_to_execute: str        # human-readable window
-    new_miss_distance_km: float
-    risk_level: str
-    explanation: str
-
-
-# --------------------------------------------------------------------------- #
-# Constants
-# --------------------------------------------------------------------------- #
-
-# Typical LEO satellite total delta-v budget (m/s), used for fuel cost estimate
-_TYPICAL_BUDGET_M_S = 200.0
-
-# Uncertainty factor applied to new miss distance estimate
-_MISS_DISTANCE_UNCERTAINTY = 0.15
-
-
-# --------------------------------------------------------------------------- #
-# Public API
-# --------------------------------------------------------------------------- #
-
-def recommend_maneuver(
-    satellite_line1: str,
-    satellite_line2: str,
-    threat_direction: dict,
-    threat_distance_km: float,
-) -> dict:
-    """
-    Generate an avoidance maneuver recommendation for a threatened satellite.
-
-    The engine:
-      1. Fetches the satellite's current state vector.
-      2. Normalises the threat direction vector.
-      3. Computes a burn direction perpendicular to both the threat vector and
-         the satellite's current velocity (cross-track component), biased by
-         the radial component for faster miss-distance gain.
-      4. Scales the required delta-v based on threat distance (closer → more
-         aggressive).
-      5. Returns a structured recommendation with all fields expected by the
-         frontend.
-
-    Args:
-        satellite_line1:   TLE line 1 of the threatened satellite.
-        satellite_line2:   TLE line 2 of the threatened satellite.
-        threat_direction:  Dict with keys x, y, z (need not be normalised).
-        threat_distance_km: Current distance to the threat object in km.
-
-    Returns:
-        ManeuverRecommendation TypedDict.
-    """
-    # ------------------------------------------------------------------ #
-    # 1. Get current satellite state
-    # ------------------------------------------------------------------ #
-    state = get_current_position(satellite_line1, satellite_line2)
+def recommend_maneuver(satellite_line1, satellite_line2, threat_direction, threat_distance_km, event_time=None):
+    if not math.isfinite(threat_distance_km) or threat_distance_km < 0:
+        raise ValueError('Distance must be finite and non-negative.')
+    state = get_current_position(satellite_line1, satellite_line2, at=event_time)
     if state is None:
-        return _fallback_recommendation(threat_distance_km)
+        raise ValueError('No valid state available for a maneuver candidate.')
+    vel = np.array([state['velocity_km_s'][k] for k in 'xyz'])
+    threat = np.array([threat_direction[k] for k in 'xyz'], dtype=float)
+    if not np.all(np.isfinite(threat)):
+        raise ValueError('Threat direction must be finite.')
+    norm = np.linalg.norm(threat)
+    # Zero separation gives no unique direction; explicitly disclose the arbitrary fallback.
+    degenerate = norm < 1e-9
+    threat = threat/norm if not degenerate else np.array([0., 0., 1.])
+    cross = np.cross(vel, threat)
+    cross_norm = np.linalg.norm(cross)
+    burn = cross/cross_norm if cross_norm > 1e-9 else -threat
+    pos = np.array([state['position_km'][k] for k in 'xyz'])
+    radial = pos/np.linalg.norm(pos)
+    dv = _compute_delta_v(threat_distance_km)
 
-    vel = np.array(
-        [
-            state["velocity_km_s"]["x"],
-            state["velocity_km_s"]["y"],
-            state["velocity_km_s"]["z"],
-        ],
-        dtype=float,
-    )
-
-    # ------------------------------------------------------------------ #
-    # 2. Normalise threat vector
-    # ------------------------------------------------------------------ #
-    threat_vec = np.array(
-        [threat_direction["x"], threat_direction["y"], threat_direction["z"]],
-        dtype=float,
-    )
-    threat_norm = np.linalg.norm(threat_vec)
-    if threat_norm < 1e-9:
-        threat_unit = np.array([0.0, 0.0, 1.0])
-    else:
-        threat_unit = threat_vec / threat_norm
-
-    # ------------------------------------------------------------------ #
-    # 3. Compute optimal burn direction
-    #    Primary: cross-track (perpendicular to velocity AND threat)
-    #    Fallback: pure radial-out if velocity is parallel to threat
-    # ------------------------------------------------------------------ #
-    vel_norm = np.linalg.norm(vel)
-    if vel_norm > 1e-9:
-        vel_unit = vel / vel_norm
-        cross = np.cross(vel_unit, threat_unit)
-        cross_norm = np.linalg.norm(cross)
-        if cross_norm > 1e-9:
-            burn_unit = cross / cross_norm
-        else:
-            # Velocity and threat are parallel — use radial outward component
-            burn_unit = -threat_unit
-    else:
-        burn_unit = -threat_unit
-
-    # ------------------------------------------------------------------ #
-    # 4. Scale delta-v based on threat distance
-    # ------------------------------------------------------------------ #
-    delta_v_m_s = _compute_delta_v(threat_distance_km)
-
-    # ------------------------------------------------------------------ #
-    # 5. Estimate post-maneuver miss distance
-    # ------------------------------------------------------------------ #
-    new_miss_km = _estimate_new_miss_distance(threat_distance_km, delta_v_m_s)
-
-    # ------------------------------------------------------------------ #
-    # 6. Ancillary metrics
-    # ------------------------------------------------------------------ #
-    fuel_pct = round((delta_v_m_s / _TYPICAL_BUDGET_M_S) * 100, 2)
-    confidence = _compute_confidence(threat_distance_km)
-    risk_level = _risk_level_from_dv(delta_v_m_s)
-    maneuver_type = _maneuver_type(delta_v_m_s)
-    time_window = _execution_window(threat_distance_km)
-    explanation = _build_explanation(
-        threat_distance_km, delta_v_m_s, new_miss_km, maneuver_type
-    )
-
-    burn_direction = {
-        "x": round(float(burn_unit[0]), 6),
-        "y": round(float(burn_unit[1]), 6),
-        "z": round(float(burn_unit[2]), 6),
-    }
-
-    primary = ManeuverRecommendation(
-        maneuver_type=maneuver_type,
-        burn_direction=burn_direction,
-        delta_v_m_s=round(delta_v_m_s, 4),
-        estimated_fuel_cost_percent=max(0.01, fuel_pct),
-        confidence_score=round(confidence, 3),
-        time_to_execute=time_window,
-        new_miss_distance_km=round(new_miss_km, 2),
-        risk_level=risk_level,
-        explanation=explanation,
-    )
-
-    alt_dv = delta_v_m_s * 3.5
-    alt_miss = _estimate_new_miss_distance(threat_distance_km, alt_dv)
-    opt_max_sep = ManeuverRecommendation(
-        maneuver_type="Max Separation Burn",
-        burn_direction=burn_direction,
-        delta_v_m_s=round(alt_dv, 4),
-        estimated_fuel_cost_percent=round((alt_dv / _TYPICAL_BUDGET_M_S) * 100, 2),
-        confidence_score=round(max(0.1, confidence - 0.15), 3),
-        time_to_execute=time_window,
-        new_miss_distance_km=round(alt_miss, 2),
-        risk_level=_risk_level_from_dv(alt_dv),
-        explanation="Aggressive maneuver to ensure maximum clearance. Consumes much more fuel."
-    )
-
-    rad_dv = delta_v_m_s * 1.5
-    rad_miss = _estimate_new_miss_distance(threat_distance_km, rad_dv) * 0.7
-    try:
-        pos_vec = np.array([state["position_km"]["x"], state["position_km"]["y"], state["position_km"]["z"]])
-        pos_norm = np.linalg.norm(pos_vec)
-        rad_unit = (pos_vec / pos_norm) if pos_norm > 1e-9 else -threat_unit
-    except Exception:
-        rad_unit = np.array([0.0, 0.0, 1.0])
-
-    opt_fast = ManeuverRecommendation(
-        maneuver_type="Emergency Radial Burn",
-        burn_direction={"x": round(float(rad_unit[0]), 6), "y": round(float(rad_unit[1]), 6), "z": round(float(rad_unit[2]), 6)},
-        delta_v_m_s=round(rad_dv, 4),
-        estimated_fuel_cost_percent=round((rad_dv / _TYPICAL_BUDGET_M_S) * 100, 2),
-        confidence_score=round(max(0.1, confidence - 0.25), 3),
-        time_to_execute="Immediate",
-        new_miss_distance_km=round(rad_miss, 2),
-        risk_level=_risk_level_from_dv(rad_dv),
-        explanation="Immediate radial burn to quickly disrupt conjunction geometry. Less fuel efficient than cross-track."
-    )
-
-    return {
-        "primary": primary,
-        "tradeoffs": [opt_max_sep, opt_fast]
-    }
+    def candidate(name, direction, delta_v):
+        return dict(maneuver_type=name, burn_direction={k:round(float(v),6) for k,v in zip('xyz',direction)},
+                    delta_v_m_s=round(delta_v,4), estimated_fuel_cost_percent=None,
+                    confidence_score=None, time_to_execute='Not evaluated', new_miss_distance_km=None,
+                    risk_level='UNVALIDATED', explanation='Distance-scaled heuristic; no post-burn propagation or spacecraft constraints evaluated.')
+    assumptions = [
+        'Distance-scaled delta-v heuristic, not an optimized burn.',
+        'No spacecraft mass, propulsion, execution window or operational constraints.',
+        'No post-burn trajectory, fuel consumption, confidence or collision probability computed.',
+        'TEME direction is perpendicular to velocity and supplied threat, not necessarily the orbital-plane normal.',
+        'Geometry is evaluated at the supplied event time; this is not a proposed execution epoch or flight command.'
+    ]
+    if degenerate: assumptions.append('Zero threat vector: arbitrary +Z reference used; direction is underdetermined.')
+    return dict(primary=candidate('Perpendicular geometry candidate',burn,dv),
+                tradeoffs=[candidate('Higher delta-v candidate',burn,dv*3.5), candidate('Radial candidate',radial,dv*1.5)],
+                status='unvalidated_candidate',frame='TEME',state_time=state['time'], assumptions=assumptions)
 
 
-# --------------------------------------------------------------------------- #
-# Private helpers
-# --------------------------------------------------------------------------- #
-
-def _compute_delta_v(threat_distance_km: float) -> float:
-    """
-    Estimate required delta-v (m/s) based on miss distance.
-
-    Closer threats require more aggressive burns.
-
-    Args:
-        threat_distance_km: Current closest-approach distance.
-
-    Returns:
-        Delta-v magnitude in m/s.
-    """
-    if threat_distance_km <= 0:
-        threat_distance_km = 0.001
-
-    if threat_distance_km < 1.0:
-        return 5.0
-    if threat_distance_km < 5.0:
-        return 3.0 + (5.0 - threat_distance_km) * 0.4
-    if threat_distance_km < 10.0:
-        return 2.0 + (10.0 - threat_distance_km) * 0.2
-    if threat_distance_km < 50.0:
-        return 0.5 + (50.0 - threat_distance_km) / 40.0 * 1.5
-    # Distant threat — minimal nudge
-    return max(0.05, 0.5 * math.exp(-threat_distance_km / 200.0))
-
-
-def _estimate_new_miss_distance(
-    current_miss_km: float, delta_v_m_s: float
-) -> float:
-    """
-    Estimate the new miss distance after the burn.
-
-    Uses a simplified linear model: each m/s of delta-v gains approximately
-    2 km of miss distance per km of current separation.
-
-    Args:
-        current_miss_km: Pre-maneuver closest-approach distance in km.
-        delta_v_m_s:     Applied delta-v in m/s.
-
-    Returns:
-        Estimated new miss distance in km.
-    """
-    gain_km = delta_v_m_s * max(2.0, current_miss_km * 0.5)
-    noise = gain_km * _MISS_DISTANCE_UNCERTAINTY
-    return current_miss_km + gain_km - noise
-
-
-def _compute_confidence(threat_distance_km: float) -> float:
-    """
-    Confidence score (0–1) based on how much time is available.
-
-    Closer threats reduce confidence because uncertainty grows.
-
-    Args:
-        threat_distance_km: Closest-approach distance in km.
-
-    Returns:
-        Confidence score in [0, 1].
-    """
-    if threat_distance_km >= 50.0:
-        return 0.97
-    if threat_distance_km >= 10.0:
-        return 0.85 + (threat_distance_km - 10.0) / 40.0 * 0.12
-    if threat_distance_km >= 1.0:
-        return 0.60 + (threat_distance_km - 1.0) / 9.0 * 0.25
-    return 0.45
-
-
-def _risk_level_from_dv(delta_v_m_s: float) -> str:
-    """
-    Map delta-v magnitude to a risk label.
-
-    Args:
-        delta_v_m_s: Required delta-v in m/s.
-
-    Returns:
-        "LOW", "MEDIUM", or "HIGH".
-    """
-    if delta_v_m_s < 0.5:
-        return "LOW"
-    if delta_v_m_s < 2.0:
-        return "MEDIUM"
-    return "HIGH"
-
-
-def _maneuver_type(delta_v_m_s: float) -> str:
-    """
-    Return a human-readable maneuver classification label.
-
-    Args:
-        delta_v_m_s: Required delta-v in m/s.
-
-    Returns:
-        Maneuver type string.
-    """
-    if delta_v_m_s < 0.5:
-        return "Micro-Adjustment"
-    if delta_v_m_s < 2.0:
-        return "Cross-Track Avoidance Burn"
-    return "Emergency Avoidance Maneuver"
-
-
-def _execution_window(threat_distance_km: float) -> str:
-    """
-    Suggest a human-readable execution time window.
-
-    Args:
-        threat_distance_km: Closest-approach distance in km.
-
-    Returns:
-        Time-to-execute string.
-    """
-    if threat_distance_km < 5.0:
-        return "Immediate (within next orbit pass)"
-    if threat_distance_km < 20.0:
-        return "Within 2–4 hours"
-    if threat_distance_km < 50.0:
-        return "Within 6–12 hours"
-    return "Within 24–48 hours"
-
-
-def _build_explanation(
-    distance_km: float,
-    delta_v_m_s: float,
-    new_miss_km: float,
-    maneuver_type: str,
-) -> str:
-    """
-    Build a concise human-readable explanation of the recommended maneuver.
-
-    Args:
-        distance_km:   Current threat distance in km.
-        delta_v_m_s:   Required delta-v magnitude in m/s.
-        new_miss_km:   Estimated post-maneuver miss distance in km.
-        maneuver_type: Maneuver classification label.
-
-    Returns:
-        Explanation string.
-    """
-    return (
-        f"Threat detected at {distance_km:.1f} km. "
-        f"Recommended {maneuver_type} with Δv = {delta_v_m_s:.3f} m/s "
-        f"applied perpendicular to the threat vector. "
-        f"This is estimated to increase miss distance to {new_miss_km:.1f} km, "
-        f"well above the 10 km CRITICAL threshold. "
-        f"Burn is oriented cross-track to minimise orbital energy change "
-        f"and preserve mission objectives."
-    )
-
-
-def _fallback_recommendation(threat_distance_km: float) -> dict:
-    """
-    Return a safe fallback recommendation when SGP4 propagation fails.
-
-    Args:
-        threat_distance_km: Input threat distance (used for scaling).
-
-    Returns:
-        ManeuverRecommendation with conservative default values.
-    """
-    delta_v = _compute_delta_v(threat_distance_km)
-    new_miss = _estimate_new_miss_distance(threat_distance_km, delta_v)
-    rec = ManeuverRecommendation(
-        maneuver_type=_maneuver_type(delta_v),
-        burn_direction={"x": 0.0, "y": 0.0, "z": 1.0},
-        delta_v_m_s=round(delta_v, 4),
-        estimated_fuel_cost_percent=round((delta_v / _TYPICAL_BUDGET_M_S) * 100, 2),
-        confidence_score=0.50,
-        time_to_execute=_execution_window(threat_distance_km),
-        new_miss_distance_km=round(new_miss, 2),
-        risk_level=_risk_level_from_dv(delta_v),
-        explanation=(
-            f"Fallback recommendation (TLE propagation unavailable). "
-            f"Threat at {threat_distance_km:.1f} km. "
-            f"Recommended Δv = {delta_v:.3f} m/s along +Z axis."
-        ),
-    )
-    return {"primary": rec, "tradeoffs": []}
+def _compute_delta_v(distance):
+    if distance < 1: return 5.0
+    if distance < 5: return 3+(5-distance)*0.4
+    if distance < 10: return 2+(10-distance)*0.2
+    if distance < 50: return 0.5+(50-distance)/40*1.5
+    return max(0.05,0.5*math.exp(-distance/200))

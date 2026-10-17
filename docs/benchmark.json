@@ -1,0 +1,36 @@
+{
+  "python": "3.11.15",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "objects": 100,
+  "start_time": "2026-06-20T00:00:00+00:00",
+  "24h_step_10min": {
+    "samples_per_object": 145,
+    "propagation_seconds": [
+      0.15340999996988103,
+      0.1663551660021767,
+      0.14513762498972937
+    ],
+    "median_seconds": 0.15340999996988103,
+    "99_pair_checks_seconds": 0.11528783303219825
+  },
+  "24h_step_1min": {
+    "samples_per_object": 1441,
+    "propagation_seconds": [
+      2.1996860419749282,
+      2.0469616249902174,
+      1.6170314170303755
+    ],
+    "median_seconds": 2.0469616249902174,
+    "99_pair_checks_seconds": 1.2040467909537256
+  },
+  "cold_catalog": {
+    "seconds": 0.9975908750202507,
+    "returned": 996,
+    "mode": "offline"
+  },
+  "warm_catalog": {
+    "seconds": 0.017184208030812442,
+    "returned": 996,
+    "mode": "offline"
+  }
+}

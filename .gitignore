@@ -78,3 +78,8 @@ Thumbs.db
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# Runtime catalog cache (bundled fixtures remain tracked)
+backend/data/runtime/
+# Keep the backend Docker build exclusions under version control.
+!backend/.dockerignore
