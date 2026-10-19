@@ -37,7 +37,7 @@ Terminal 2:
 
 ```bash
 cd frontend
-npm start
+HOST=127.0.0.1 PORT=3000 BROWSER=none npm start
 ```
 
 Open http://localhost:3000. API documentation: http://localhost:8000/docs.
@@ -96,7 +96,7 @@ Existing route names are preserved: `/health`, `/satellites`, `/propagate`, `/co
 ```bash
 cd backend
 docker build -t orbital-guardian-api .
-docker run --rm -p 8000:8000 -e ORBITAL_OFFLINE=1 orbital-guardian-api
+docker run --rm -p 127.0.0.1:8000:8000 -e ORBITAL_OFFLINE=1 orbital-guardian-api
 ```
 
 The image now includes bundled data and excludes virtualenv/secrets/runtime cache. Runtime catalogs are written under `backend/data/runtime` locally, or `/app/data/runtime` in Docker. `ORBITAL_CACHE_DIR` can select a writable persistent directory. In-memory caches are per process; no distributed cache coordination exists. The Docker build itself remains unverified in this environment.
@@ -118,3 +118,9 @@ One-minute separation sampling can miss encounters between samples. The API's le
 - [GitHub handoff and continuation prompt](docs/HANDOFF.md)
 
 The project has no affiliation with LeoLabs. Its relevance is in catalog quality, scientific computation, transparent analysis and testing, not replication of proprietary sensing systems. The previous README referenced an MIT license, but no root LICENSE file is present; repository-wide licensing remains to be resolved by the owner. The included Space Grotesk font has its own OFL license.
+
+## Verification continuation (18 October 2026)
+
+22 backend and 6 frontend tests pass; actual desktop WebGL, mobile/tablet portions, local HTTP workflows and isolated live HTTPS stations ingestion have been exercised. Fixed mobile viewport overflow, stale request/loading state and near-future epochs being called recent. Browser acceptance remains partial; Docker daemon is unavailable, hosted CI unverified, dependency advisories and licenses unresolved. See [current evidence](docs/VERIFICATION.md) and [next-session prompt](docs/NEXT_SESSION.md). No deployment performed.
+
+19 October: current tests/lint/build and isolated clean installs pass; production single catalogue request and outage/retry verified. Hosted CI succeeded for df13a9b only. Full release acceptance, Docker, portable backend locking, advisories and licensing remain open. See docs/VERIFICATION.md and docs/NEXT_SESSION.md.

@@ -82,3 +82,9 @@ Preserve React/R3F and FastAPI/SGP4. Repair validation, time/frame correctness a
 ## Final checkpoint
 
 The selected implementation is in the working tree. Final automated results: 18 backend tests, 4 frontend tests, lint and production build pass. The detailed changes, compatibility adjustments, numerical evidence and unverified browser/runtime checks are in [VERIFICATION.md](VERIFICATION.md). The baseline inventory above is intentionally retained as historical evidence; it does not describe the final implementation state.
+
+## 18 October continuation
+
+Browser instrumentation now supplies actual screenshots. Desktop WebGL, 390px mobile and 768px tablet checks found and repaired mobile viewport overflow. Request cancellation and future-epoch classification were hardened; 22 backend and 6 frontend tests pass. Real HTTP pair/scan and isolated live HTTPS stations ingestion succeeded. Acceptance remains partial: laptop/remaining interaction/fault-injection checks, dependency remediation, Docker, CI and licensing are outstanding. See VERIFICATION.md and NEXT_SESSION.md; earlier final-checkpoint counts are historical.
+
+19 October evidence: current and clean-install tests/build pass, with identical frontend build files; Python certifi transitive drift observed. Production one-catalogue request and outage/retry confirmed. Hosted CI success covers df13a9b only; Docker unavailable. Browser acceptance/security/licensing remain incomplete. See VERIFICATION.md.

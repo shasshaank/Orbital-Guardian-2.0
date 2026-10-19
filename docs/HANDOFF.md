@@ -54,3 +54,45 @@ Scientific scope remaining (prioritize only after the current release is verifie
 
 Retain the original visual direction: restrained midnight navy, icy blue, warm amber, strong typography, dominant functional globe, no fake telemetry or gratuitous effects. design-ui-with-restraint and write-practical-copy skills were unavailable previously; use them if genuinely available now, otherwise follow these principles. No additional decorative images are necessary to finish verification.
 ```
+
+## Updated checkpoint — 18 October 2026
+
+The original checkpoint was subsequently committed/pushed as `df13a9b` on `orbital-guardian-research-workspace` before this continuation began. This continuation made additional **uncommitted** fixes and evidence updates. Use [NEXT_SESSION.md](NEXT_SESSION.md) instead of the older copied prompt above. No new branch is needed. See VERIFICATION.md for the exact automated and partial browser outcomes; do not treat this as release acceptance.
+
+After reviewing this session's diff, checkpoint on the current feature branch:
+
+```bash
+git status -sb
+git diff --check
+git add README.md backend/app/main.py backend/app/orbital_data.py backend/tests/test_api.py backend/tests/test_science.py
+git add frontend/src/App.jsx frontend/src/App.test.jsx frontend/src/components/ManeuverPanel.jsx frontend/src/index.css
+git add docs/VERIFICATION.md docs/PROJECT_AUDIT.md docs/TECHNICAL_ROADMAP.md docs/VISUAL_ASSETS.md docs/HANDOFF.md docs/NEXT_SESSION.md docs/CHANGED_FILES.txt
+git diff --cached --check
+git diff --cached --stat
+git commit -m "Fix mobile overflow and request cancellation; extend verification"
+git push origin orbital-guardian-research-workspace
+```
+
+Do not merge/deploy merely because automated checks pass. Production CORS and frontend/backend `/catalog` version alignment remain release requirements.
+
+
+## Stop-for-day checkpoint — 19 October 2026
+
+Use NEXT_SESSION.md as the current continuation prompt. All prior work preserved; today's changes are documentation/evidence only. Tests and clean-install evidence pass, production single-catalogue request and outage/retry verified. Hosted CI success covers df13a9b only. Release acceptance, Docker, dependency security/portable locking and licensing remain open. Local API/static frontend stopped for the day; recheck ports next session. Final `git diff --check` passed. No commit/push/deployment performed.
+
+Stage the explicit current checkpoint files on the existing feature branch (do not recreate it):
+
+```bash
+git status -sb
+git diff --check
+git add README.md backend/app/main.py backend/app/orbital_data.py backend/tests/test_api.py backend/tests/test_science.py
+git add frontend/src/App.jsx frontend/src/App.test.jsx frontend/src/components/ManeuverPanel.jsx frontend/src/index.css
+git add docs/CHANGED_FILES.txt docs/HANDOFF.md docs/NEXT_SESSION.md docs/PROJECT_AUDIT.md docs/TECHNICAL_ROADMAP.md docs/VERIFICATION.md docs/VISUAL_ASSETS.md docs/verification-2026-10-19.json
+git diff --cached --check
+git diff --cached --stat
+git diff --cached
+git commit -m "Fix metadata and request state; record release verification"
+git push origin orbital-guardian-research-workspace
+```
+
+Inspect staged content before committing. Exclude .env, .venv, node_modules, build, runtime cache and /tmp verification environments. Do not merge to a deployment branch. After push, check GitHub Actions for that exact commit; the prior successful run does not validate this new commit. Branch auto-deployment settings were not altered or independently verified here.

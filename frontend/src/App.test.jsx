@@ -75,3 +75,38 @@ test('pair workflow uses explicit inputs and does not invent probability', async
   const url = fetch.mock.calls.find(([url]) => url.includes('/collision-check?'))[0]; expect(url).toContain('line1_a=line1-a');
   await change(selects[2], '6'); expect(container.textContent).not.toContain('100.000');
 });
+
+test('clearing maneuver inputs cancels pending work and clears loading and late results', async () => {
+  const ManeuverPanel = require('./components/ManeuverPanel').default;
+  let finish;
+  global.fetch = jest.fn(() => new Promise(resolve => { finish = resolve; }));
+  await render(<ManeuverPanel threatParams={{ threat_distance_km: 0 }} />);
+  const signal = fetch.mock.calls[0][1].signal;
+  expect(container.textContent).toContain('Computing heuristic candidates');
+  await render(<ManeuverPanel threatParams={null} />);
+  expect(signal.aborted).toBe(true);
+  expect(container.textContent).not.toContain('Computing heuristic candidates');
+  await act(async () => finish({ ok: true, json: async () => ({ primary: { delta_v_m_s: 999 } }) }));
+  expect(container.textContent).not.toContain('999');
+});
+
+test('changing pair selection aborts slow request and ignores late response', async () => {
+  const original = fetch;
+  let finish, signal;
+  global.fetch = jest.fn((url, options) => {
+    if (url.includes('/collision-check?')) {
+      signal = options.signal;
+      return new Promise(resolve => { finish = resolve; });
+    }
+    return original(url, options);
+  });
+  await render(<App />); await click('Conjunction analysis');
+  const selects = container.querySelectorAll('.analysis-inputs select');
+  await change(selects[1], '2'); await click('Run pair screen');
+  expect(container.textContent).toContain('Screening pair');
+  await change(selects[2], '6');
+  expect(signal.aborted).toBe(true);
+  await act(async () => finish({ ok: true, json: async () => ({ min_distance_km: 12345 }) }));
+  expect(container.textContent).not.toContain('12,345');
+  expect(container.textContent).not.toContain('Screening pair');
+});

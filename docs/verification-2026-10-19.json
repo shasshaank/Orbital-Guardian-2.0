@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-19",
+  "scope": "Local macOS ARM64 clean-install evidence; not a portable dependency lock or security clearance",
+  "python": "3.11.15",
+  "node": "22.11.0",
+  "npm": "10.9.0",
+  "backend_clean_versions": {
+    "fastapi": "0.109.0",
+    "uvicorn": "0.27.0",
+    "requests": "2.31.0",
+    "sgp4": "2.23",
+    "numpy": "1.26.3",
+    "python-dotenv": "1.0.0",
+    "httpx": "0.27.2",
+    "charset-normalizer": "3.5.2",
+    "httpcore": "1.0.9",
+    "idna": "3.20",
+    "pydantic": "2.14.1",
+    "pydantic_core": "2.50.1",
+    "starlette": "0.35.1",
+    "anyio": "4.15.1",
+    "urllib3": "2.8.0",
+    "annotated-types": "0.8.0",
+    "certifi": "2026.10.18",
+    "click": "8.5.0",
+    "h11": "0.16.0",
+    "typing_extensions": "4.16.0",
+    "typing-inspection": "0.4.4",
+    "sniffio": "1.3.1"
+  },
+  "frontend_clean_install_packages": 1365,
+  "frontend_build_files_identical": true,
+  "frontend_build_sha256": {
+    "index.html": "af90e977ed59107e86e9f8c7fbbbc52324055948bff1a7756c87ac4577063280",
+    "asset-manifest.json": "561ef218d31fae30c77f4827824cf461762c216f3c2ea95eb4ca2f2f58dc1feb",
+    "textures/earth_daymap.jpg": "88ab060b6e7d241cfc590c69f528fab2b3247b738d40124cb590999a6fe44abc",
+    "textures/earth_bump_2048.jpg": "0847b54e2fc34cc14ae44d4c8c73a814d83ffb349b1dd11ed63ca13bbe751d9b",
+    "textures/earth_clouds_1024.png": "7d3b82ef6b3feb506fc06f02a744aed3d864e23e7417075005f4082a7ff935a4",
+    "textures/earth_atmos_2048.jpg": "2faa400d1eade3bc44caf6750d1b772bd9bbb6d87362c02bc7c3304e78fa0a9d",
+    "textures/earth_specular_2048.jpg": "2df48906732d7a458b2d0a7cdec51a829262307c6bdee4cfdf079a4dd7c71c69",
+    "images/earth-horizon.jpg": "3a214d9f79569812ea65914eef0f28ec315648e8db21489a4b38e0228ff071ba",
+    "images/earth-map.jpg": "1f4affb361a3242d8c2bf39c7d5f59a8188b5eb3d51e027582eb47847ff0df62",
+    "fonts/space-grotesk.ttf": "acad6de1fc93436f5c0f1f4137751ef04f1aea3063e7036535970ffcfbd79f72",
+    "fonts/OFL.txt": "564ce565c371c5e5bbf286006565a7c9aa55a9f56e7ca58d56e05d649dd61a72",
+    "static/css/main.bac8db01.css": "4fb476ea62a4540bf49a5f3abc743004c915ebdaa19bfb1000287aa51425ef0e",
+    "static/js/main.d0ab9b89.js": "6ff0106514c7235986e75b7d20d396301b7c349426edd73f20550ae5fbd2ffcb",
+    "static/js/main.d0ab9b89.js.LICENSE.txt": "5672118ef03ad31dd4c40bdf9e3877e240e1e5725d009d5b3d8a8633d6fee887",
+    "static/js/411.234badb8.chunk.js": "1ec7d3bdadce5b273780a1d2babf70036ae509766070a307137432d8ffffcdc6",
+    "static/js/85.2efcac41.chunk.js": "fd36ec1c441e03549c8f038b75128c9a55b82307f1e5856db45fcfdf07f77722"
+  },
+  "hosted_ci": [
+    {
+      "id": 39030049272,
+      "head_sha": "df13a9b1a16c4061641c41c51d9ebdfa150b8f30",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shasshaank/Orbital-Guardian-2.0/actions/runs/39030049272",
+      "updated_at": "2026-10-17T11:49:25Z"
+    }
+  ]
+}

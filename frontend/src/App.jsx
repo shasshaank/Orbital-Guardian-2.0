@@ -39,9 +39,10 @@ export default function App() {
   }, [refresh]);
   useEffect(() => {
     setTrajectory([]); setSample(null); setOrbitError('');
-    if (!selected) return;
+    if (!selected) { setOrbitLoading(false); return; }
     const c = new AbortController(); setOrbitLoading(true);
     request('/propagate', { line1: selected.line1, line2: selected.line2, hours: 2, step_minutes: 2, start_time: selected.time }, c.signal).then(data => {
+      if (c.signal.aborted) return;
       if (!Array.isArray(data) || !data.length) throw new Error('No trajectory samples returned.');
       setTrajectory(data);
     }).catch(e => { if (e.name !== 'AbortError') setOrbitError(e.message); }).finally(() => { if (!c.signal.aborted) setOrbitLoading(false); });

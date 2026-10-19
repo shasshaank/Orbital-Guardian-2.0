@@ -33,7 +33,7 @@ def element_metadata(line1: str, line2: str, at=None) -> dict:
     epoch = datetime(year, 1, 1, tzinfo=timezone.utc) + timedelta(days=float(line1[20:32])-1)
     age = ((at or datetime.now(timezone.utc)) - epoch).total_seconds()/86400
     return dict(norad_id=sat.satnum, epoch=epoch.isoformat(), epoch_age_days=round(age, 3),
-                freshness='future' if age < -1 else 'stale' if age > 7 else 'recent',
+                freshness='future' if age < 0 else 'stale' if age > 7 else 'recent',
                 inclination_deg=round(math.degrees(sat.inclo), 4), eccentricity=sat.ecco,
                 mean_motion_rev_day=round(sat.no_kozai*1440/(2*math.pi), 8),
                 period_minutes=round(2*math.pi/sat.no_kozai, 3))

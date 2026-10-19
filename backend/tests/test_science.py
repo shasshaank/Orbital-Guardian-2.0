@@ -63,6 +63,7 @@ class ScienceTests(unittest.TestCase):
 
     def test_metadata_and_ingest(self):
         meta=element_metadata(L1,L2,EPOCH)
+        self.assertEqual(element_metadata(L1,L2,EPOCH-timedelta(hours=1))['freshness'],'future')
         self.assertEqual(meta['norad_id'],5);self.assertEqual(meta['epoch_age_days'],0)
         self.assertEqual(element_metadata(L1,L2,EPOCH+timedelta(days=8))['freshness'],'stale')
         records,rejected,duplicates=validate_records([RECORD,RECORD,dict(line1='bad',line2='bad')])

@@ -32,7 +32,7 @@ app = FastAPI(
     title="Orbital Guardian API",
     description=(
         "Public-TLE Orbital Analysis Research Workspace. "
-        "Provides real-time satellite tracking, orbital propagation, collision "
+        "Provides public-TLE snapshots, orbital propagation, collision "
         "screening, and unvalidated heuristic maneuver candidates."
     ),
     version="1.0.0",
@@ -173,7 +173,7 @@ def asset_scan(
     hours: int = Query(default=24, ge=1, le=168, description="Scan window in hours"),
 ) -> dict:
     """
-    Scan a primary asset against the entire fleet for collision risks.
+    Screen a primary asset against at most 500 active-catalogue candidates.
     """
     started = time.perf_counter()
     start = datetime.now(timezone.utc)

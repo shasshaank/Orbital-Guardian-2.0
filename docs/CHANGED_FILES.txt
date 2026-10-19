@@ -18,6 +18,7 @@ backend/tests/test_science.py
 docs/CHANGED_FILES.txt
 docs/HANDOFF.md
 docs/LEOLABS_ALIGNMENT.md
+docs/NEXT_SESSION.md
 docs/PRODUCT_GAP_ANALYSIS.md
 docs/PROJECT_AUDIT.md
 docs/TECHNICAL_ROADMAP.md
@@ -41,3 +42,4 @@ frontend/src/components/ObjectInspector.jsx
 frontend/src/components/SatelliteLayer.jsx
 frontend/src/components/SatelliteOrbit.jsx
 frontend/src/index.css
+docs/verification-2026-10-19.json
