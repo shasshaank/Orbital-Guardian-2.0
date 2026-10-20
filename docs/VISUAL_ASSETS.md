@@ -8,3 +8,5 @@
 No other imagery was generated. The requested satellite/texture examples were optional; additional decorative assets were intentionally deferred. Requested design/copy skills were unavailable; the user's visual and language constraints were followed. Visual browser QA remains outstanding; do not claim the layout has passed screenshot review.
 
 18 October update: native browser screenshots now verify actual desktop Earth texture/markers/path and mobile/tablet portions of the interface. Space Grotesk font loading confirmed in Chrome. Full visual/accessibility acceptance remains incomplete; see VERIFICATION.md. The owner confirmed they do not know the original Earth texture provenance or intended root license. Neither is resolved and no license has been inferred. Screenshot captures are in the conversation, not checked-in files.
+
+20 October: `frontend/public/favicon.svg` is an original code-drawn orbit symbol (navy, ice and amber); no external asset copied. New tab icon visible in Chrome and served as SVG with HTTP 200. Existing Earth texture/root licensing remains unresolved.

@@ -2,7 +2,7 @@
 
 Continue from the current working tree on `orbital-guardian-research-workspace`. Preserve all uncommitted changes. Do not restart the project, rewrite architecture, blindly upgrade dependencies, deploy, or alter Render. Finish release verification before advanced features.
 
-First read README.md, docs/VERIFICATION.md (including the 18 and 19 October evidence), docs/HANDOFF.md, docs/NEXT_SESSION.md, docs/PROJECT_AUDIT.md, docs/PRODUCT_GAP_ANALYSIS.md, docs/LEOLABS_ALIGNMENT.md, docs/TECHNICAL_ROADMAP.md, docs/VISUAL_ASSETS.md, docs/CHANGED_FILES.txt and docs/verification-2026-10-19.json. Inspect git status/diff before editing. Last observed HEAD was df13a9b; the owner may have pushed a new checkpoint since. Treat VERIFICATION.md as the ledger: never claim unexecuted checks passed.
+First read README.md, docs/VERIFICATION.md (including the 18 and 19 October evidence), docs/HANDOFF.md, docs/NEXT_SESSION.md, docs/PROJECT_AUDIT.md, docs/PRODUCT_GAP_ANALYSIS.md, docs/LEOLABS_ALIGNMENT.md, docs/TECHNICAL_ROADMAP.md, docs/VISUAL_ASSETS.md, docs/CHANGED_FILES.txt and docs/verification-2026-10-19.json plus docs/verification-2026-10-20.json. Inspect git status/diff before editing. Last observed HEAD was 1346d864f6f7e840db4425acbdf47cbcf1ed25ca; the owner may have pushed a new checkpoint since. Treat VERIFICATION.md as the ledger: never claim unexecuted checks passed.
 
 Preserve React 18/CRA/Three/R3F + FastAPI/Python 3.11/SGP4, restrained navy/ice/amber design, functional globe, source/stale/time metadata, API compatibility and candidate-only maneuver semantics. No Pc, radar, orbit determination or flight-ready guidance exists.
 
@@ -29,3 +29,20 @@ Next priorities:
 7. Run appropriate backend unittest, npm lint/test:ci/build after application changes, git diff --check and final diff review. Update ledger/audit/roadmap/handoff/manifest and exact remaining blockers. No TypeScript check exists.
 
 Advanced continuous TCA validation, conservative broad-phase recall, replay, background ingestion, covariance/Pc and physical maneuver what-if remain deferred until release acceptance. Stop and checkpoint when owner requests; do not label this checkpoint release-ready.
+
+
+## Latest stop checkpoint — 20 October 2026 (read before older priorities)
+
+Owner requested stopping for today and push commands. Starting tree was clean at `1346d864`; all today's edits are uncommitted. No commit/push/deployment/Render or dependency changes made. Source changes: original `frontend/public/favicon.svg` plus HTML link, and `name` attributes on active inputs/selects in App, Catalogue and ConjunctionWorkbench. Documentation/evidence updated. Preserve all changes.
+
+Executed after source edits: 22 backend tests pass (1.394 s), lint passes, 6 frontend tests pass (2.059 s), production build passes (`main.27c03b43.js`, 265.61 kB gzip). Existing advisory/deprecation notices remain. Hosted Actions run 39222369894 succeeds for full starting SHA `1346d864f6f7e840db4425acbdf47cbcf1ed25ca` ONLY, not these uncommitted edits. Use a full SHA when querying GitHub API; abbreviated filter returned no runs. Docker still has no reachable daemon.
+
+New actual browser evidence: exact innerWidth/innerHeight/scrollWidth **1366/768/1366**; globe/inspector side by side, vertical scroll exposes lower controls. Zoom in/out and objects/path hiding/grid visibility confirmed. Catalogue ascending-altitude sort confirmed; recent filter empty, stale filter restores 996 objects. Reset-to-all attempt left stale selected: reset/newest-epoch sort still unverified. Drag/picking/reset-after-rotation unverified. Favicon appears and returns HTTP 200 image/svg+xml. Form names pass source/build review, but Issues clearance not confirmed.
+
+Existing-tab reload again produced a blank surface; a fresh localhost tab recovered API/catalogue/61-state forecast. Cause remains unknown. Native CUA actions often silently failed or returned `noWindowsAvailable`; reconnecting via `cua.getApp('com.google.Chrome')` sometimes helped. Chrome View > Developer > JavaScript Console opened DevTools when keyboard shortcuts failed. No browser automation surface was available. Do not claim attempted actions or commands that never appeared actually ran. Screenshots remain conversation-only.
+
+One fixed June CALSPHERE 1/2 TestClient check at API maximum 168 h / 1 minute produced 10,081 aligned samples, 7,347,838 bytes, 0.5629 s. This is not socket/concurrency/500-candidate scan evidence. See machine-readable JSON and ledger.
+
+Next: diagnose blank reload; finish browser fault injection (slow request/selection cancellation, maneuver zero/null/assumptions, WebGL fallback), keyboard/reduced motion/touch and remaining mobile/tablet controls. Review source-less CSP issue without weakening CSP. Finish Docker when daemon available, compatible advisory review and portable backend lock validation. Root license and original Earth texture source remain unknown. Do not advance to Stage 3/4 or label release-ready.
+
+Local API/static servers are stopped at checkpoint; recheck listeners before restarting. The static build reflects today's source edits. After owner pushes, verify hosted CI against the new full SHA. Use HANDOFF.md for today's exact push commands.

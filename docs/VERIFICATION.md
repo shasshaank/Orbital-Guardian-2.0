@@ -173,3 +173,36 @@ Neither localhost listener survived the previous session. Started the updated of
 Source review confirms synchronous serial asset scan work (up to 500 × 10,081 one-minute states for 168 hours); browser abort does not stop backend computation. Pair responses include two full paths. Large-response/concurrency limits remain open; no load/maximum-horizon benchmark was run. Retained legacy modules and compact formatting were not rewritten. Root licensing and original Earth texture provenance remain unresolved.
 
 `git diff --check` passed before documentation finalization; final check recorded in handoff. No secret/config values were added to the documentation evidence, and tracked data/lockfiles remain unchanged. No full historical secret audit is claimed. Local servers were stopped at the end of this session; next session must recheck/restart. No commit, push, deployment or advanced feature work performed.
+
+
+## Continuation checkpoint — 20 October 2026
+
+Started on `orbital-guardian-research-workspace` at `1346d864f6f7e840db4425acbdf47cbcf1ed25ca`, with a clean working tree and empty diff. The owner had committed the previous checkpoint. Read the continuation documents before editing. Today's source changes are limited to an original inline-vector favicon file/link and `name` attributes for active form controls (catalogue, layers/timeline, pair/scan inputs). Existing labels and behavior are preserved. No dependencies, fixtures, backend code, licenses, production settings or advanced features changed.
+
+### Executed checks and exact CI coverage
+
+- Backend unittest: **22 passed**, 1.394 s; existing HTTPX deprecation warning remains.
+- Frontend lint: **passed**; **6 frontend tests passed**, 2.059 s; production build **passed**, main `main.27c03b43.js` 265.61 kB gzip, CSS 8.38 kB. Existing Browserslist age/punycode notices remain. No new tests for the low-impact favicon/name changes.
+- Read-only GitHub API lookup using the **full SHA** confirms [run 39222369894](https://github.com/shasshaank/Orbital-Guardian-2.0/actions/runs/39222369894) completed successfully for **1346d864f6f7e840db4425acbdf47cbcf1ed25ca**. An initial abbreviated-SHA query returned no runs; that is not a failure result. The hosted pass does **not** cover today's uncommitted edits.
+- Docker CLI still cannot connect to the desktop-linux daemon. Container build/startup/offline fallback remain unverified.
+- One fixed-fixture maximum-horizon pair via TestClient: CALSPHERE 1/2, start `2026-06-20T00:00:00Z`, 168 h, 1-minute step, HTTP 200, **10,081 aligned samples**, both paths length 10,081, **7,347,838 response bytes**, **0.5629 s** including TestClient setup/request on Python 3.11.15/macOS ARM64. This is one in-process observation, not socket throughput, concurrency, memory, 500-candidate maximum-horizon scan or a latency SLO. Large response and server-side CPU cancellation risks remain.
+- Machine-readable evidence: [verification-2026-10-20.json](verification-2026-10-20.json).
+
+### Production-browser observations
+
+Local listeners were initially absent. Sandbox binds failed; escalated offline API/static build servers started on **127.0.0.1 only**, ports 8000/3000. Chrome native CUA remains the only available browser interface. Screenshots are conversation captures, not saved artifacts.
+
+- Exact laptop dimensions now verified by DevTools fields **and** page console: `innerWidth=1366`, `innerHeight=768`, document `scrollWidth=1366`. Screenshot shows side-by-side globe/inspector, no horizontal overflow. Vertical scrolling brings the full globe controls/timeline into view; these are below the fold at the page top.
+- Zoom in visibly enlarged Earth, zoom out reduced it. Turning Objects and Trajectory off hid markers/path; Grid on displayed the grid. Restoring controls restored their checked states. Drag was attempted but no reliable changed orientation was captured; drag/picking/reset after rotation remain unverified.
+- Full catalogue altitude sort visibly changed to ascending values (83.6, 181.5, 185.0 km at that snapshot). Recent-elements filter showed zero matches; switching to stale restored 996 matches. Attempted reset-to-all instead left stale selected; **do not claim reset-to-all or newest-epoch sort passed**.
+- Reproduced `favicon.ico` 404 before the fix. Added original SVG favicon, rebuilt; Chrome tab displays the new icon and a localhost HEAD request returns **200**, `image/svg+xml`, 375 bytes. Existing console history retains the old 404; full clean console clearance is not established. Form names fixed by source inspection/build; DevTools Issues removal not confirmed.
+- Reloading the existing DevTools tab again produced a blank surface, with no new diagnostic captured. A fresh local tab recovered the workspace, API reachable, 996 objects and 61 forecast states. The cause remains unresolved. Do not classify it as either an application failure or solely tooling without further evidence.
+- Native actions intermittently did nothing or returned `noWindowsAvailable`; reconnecting the app allowed some further actions. Console command entry also became unreliable. No successful browser slow-request injection, maneuver edge-state test, forced WebGL fallback, reduced-motion or full keyboard/touch audit was captured. Earlier evidence remains valid only for its documented scope.
+
+### Remaining acceptance blockers
+
+Continue release verification before advanced features: diagnose blank reload and source-less CSP issue without weakening security; complete marker picking/drag/reset, remaining mobile/tablet and touch controls, filter reset/newest sort, keyboard/focus, reduced motion, forced WebGL and browser slow-request/selection/maneuver checks. Docker needs an available daemon. Advisory remediation and portable backend locking require separate compatibility/cross-platform validation. Root license and Earth texture provenance remain unknown; no license inferred. Full release acceptance is **not complete**.
+
+Final source diff review and `git diff --check` passed; final documentation check is recorded at handoff. No commit, push, deployment or Render changes performed.
+
+Owner subsequently requested a stop-for-day checkpoint. Local API/static servers were stopped; continuation and explicit push commands saved in NEXT_SESSION.md/HANDOFF.md. Remaining checks are deferred, not passed.

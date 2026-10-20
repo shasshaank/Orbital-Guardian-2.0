@@ -43,3 +43,5 @@ frontend/src/components/SatelliteLayer.jsx
 frontend/src/components/SatelliteOrbit.jsx
 frontend/src/index.css
 docs/verification-2026-10-19.json
+frontend/public/favicon.svg
+docs/verification-2026-10-20.json

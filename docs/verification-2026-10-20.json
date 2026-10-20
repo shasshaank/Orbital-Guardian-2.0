@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-20",
+  "starting_head": "1346d864f6f7e840db4425acbdf47cbcf1ed25ca",
+  "initial_worktree": "clean",
+  "hosted_ci": [
+    {
+      "id": 39222369894,
+      "head_sha": "1346d864f6f7e840db4425acbdf47cbcf1ed25ca",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shasshaank/Orbital-Guardian-2.0/actions/runs/39222369894",
+      "updated_at": "2026-10-19T08:24:40Z"
+    }
+  ],
+  "automated": {
+    "backend_tests": 22,
+    "backend_seconds": 1.394,
+    "frontend_tests": 6,
+    "frontend_seconds": 2.059,
+    "lint": "passed",
+    "production_build": "passed",
+    "main_js": "main.27c03b43.js",
+    "main_js_gzip_kb": 265.61
+  },
+  "maximum_horizon_pair": {
+    "scope": "Single in-process TestClient maximum-horizon pair; no socket, concurrency or asset-scan load claim",
+    "python": "3.11.15",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "hours": 168,
+    "step_minutes": 1,
+    "start_time": "2026-06-20T00:00:00Z",
+    "objects": [
+      "CALSPHERE 1",
+      "CALSPHERE 2"
+    ],
+    "status": 200,
+    "elapsed_seconds": 0.5629,
+    "response_bytes": 7347838,
+    "sample_count": 10081,
+    "path_lengths": [
+      10081,
+      10081
+    ]
+  },
+  "browser": {
+    "laptop": {
+      "innerWidth": 1366,
+      "innerHeight": 768,
+      "scrollWidth": 1366
+    },
+    "confirmed": [
+      "Zoom in enlarges globe; zoom out reduces it",
+      "Objects and trajectory can be hidden; grid visibly appears",
+      "Altitude sort ascending",
+      "Recent filter shows zero matches; stale filter restores 996 matches",
+      "New favicon visible after rebuild; HTTP 200 image/svg+xml",
+      "Fresh-tab recovery after blank reload; 61 forecast states restored"
+    ],
+    "unconfirmed": [
+      "Drag and marker picking",
+      "Filter reset to all and newest-epoch sort",
+      "Remaining mobile/tablet controls and touch scrolling",
+      "Reduced motion and comprehensive keyboard focus",
+      "Forced WebGL fallback",
+      "Slow-request and selection-change browser fault injection",
+      "Maneuver zero/null and assumptions UI",
+      "Full console/Issues clearance"
+    ],
+    "blank_reload": "Reproduced on existing tab; fresh tab recovered; cause unresolved"
+  },
+  "docker": "CLI available; daemon connection failed",
+  "scope": "No deployment, Render changes, dependency upgrades, license claims, commit or push. Hosted CI covers starting commit only, not new edits."
+}
