@@ -120,3 +120,35 @@ git push origin orbital-guardian-research-workspace
 ```
 
 Confirm the displayed branch is `orbital-guardian-research-workspace` and review staged content before committing. Explicit paths exclude local environments/builds/caches. These commands do not merge to the production branch. After push, inspect Actions for the resulting full SHA; run 39222369894 covers only starting commit 1346d864. No deployment authorization is implied.
+
+
+21 October: hosted CI passed for `0182cbcf`; 22 backend/6 frontend tests, lint, build and pip check pass. Actual HTTP 168-hour pair returned 10,081 samples/path (7.35 MB); 500-candidate maximum-horizon ISS scan completed in 99.13 s with 496 successful/4 failed and 92 successful overlapping health probes. Brave newest-epoch sort and reset-to-all confirmed. Forecast fault injection remains partial; owner requested leaving Brave alone. Reload local Brave test tab before reuse to remove its temporary fetch wrapper. Docker, browser acceptance, dependency/security/portable locking and licensing remain open. No source/dependency/deployment/Render changes. See [verification evidence](VERIFICATION.md).
+
+Local offline API and static production server were stopped after verification; listener check found neither port 8000 nor 3000 listening. Final documentation/evidence review and `git diff --check` passed. Changes remain uncommitted.
+
+## Save the 21 October stop checkpoint
+
+Owner requested stopping and a focused next-session prompt. NEXT_SESSION.md now replaces accumulated instructions with a short state summary, targeted reading and remaining-task file map. Historical evidence remains in VERIFICATION.md. No further browser or application work performed.
+
+Run on the existing feature branch; inspect the staged diff before the final commit/push:
+
+```bash
+cd /Users/shashaankjain/Desktop/Orbital-Guardian-2.0
+git status -sb
+git branch --show-current
+git diff --check
+git add README.md docs/CHANGED_FILES.txt docs/HANDOFF.md docs/NEXT_SESSION.md docs/PROJECT_AUDIT.md docs/TECHNICAL_ROADMAP.md docs/VERIFICATION.md docs/verification-2026-10-21.json
+git diff --cached --check
+git diff --cached --stat
+git diff --cached
+git commit -m "Record release verification and focus next-session handoff"
+git push origin orbital-guardian-research-workspace
+```
+
+Expected branch: `orbital-guardian-research-workspace`. Do not recreate it or merge into a deployment branch. If unrelated files were already staged, exclude them from this checkpoint before committing. No force push. These commands explicitly stage only today's documentation/evidence files.
+
+Next-session prompt:
+
+```text
+Continue Orbital Guardian 2.0 on orbital-guardian-research-workspace. Read docs/NEXT_SESSION.md first and follow its focused reading instructions. Inspect git status/diff and preserve all uncommitted work. Read only the latest relevant VERIFICATION.md section and source files needed for the selected remaining task; do not re-audit the project or repeat completed verification. Finish release verification before advanced features. Leave Brave alone unless I explicitly authorize it. Do not deploy, alter Render, invent licenses or blindly upgrade dependencies.
+```

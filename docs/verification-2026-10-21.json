@@ -1,0 +1,441 @@
+{
+  "date": "2026-10-21",
+  "starting_head": "0182cbcf290ca7393c13da2483d6a25c46741dc4",
+  "initial_worktree": "clean",
+  "hosted_ci": [
+    {
+      "id": 39424127127,
+      "head_sha": "0182cbcf290ca7393c13da2483d6a25c46741dc4",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shasshaank/Orbital-Guardian-2.0/actions/runs/39424127127"
+    }
+  ],
+  "automated": {
+    "backend_tests": 22,
+    "backend_seconds": 0.792,
+    "frontend_tests": 6,
+    "frontend_seconds": 1.394,
+    "lint": "passed",
+    "production_build": "passed",
+    "pip_check": "passed",
+    "main_js": "main.27c03b43.js"
+  },
+  "http": {
+    "scope": "Single local offline Uvicorn process; one pair followed by one scan with concurrent health probes. Not a production SLO or multi-client load test.",
+    "pair": {
+      "status": 200,
+      "seconds": 0.6641,
+      "bytes": 7347838,
+      "sample_count": 10081,
+      "path_lengths": [
+        10081,
+        10081
+      ],
+      "hours": 168,
+      "start_time": "2026-06-20T00:00:00Z"
+    },
+    "scan": {
+      "status": 200,
+      "seconds": 99.1311,
+      "bytes": 2707,
+      "hours": 168,
+      "asset": "ISS (ZARYA)",
+      "attempted_count": 500,
+      "scan_count": 496,
+      "failed_count": 4,
+      "candidate_count": 15829,
+      "truncated": true,
+      "processing_ms": 99070.72,
+      "start_time": "2026-10-21T12:33:21.640638+00:00",
+      "risk_rows": 4
+    },
+    "health_probes": [
+      {
+        "status": 200,
+        "seconds": 0.0735
+      },
+      {
+        "status": 200,
+        "seconds": 0.1423
+      },
+      {
+        "status": 200,
+        "seconds": 0.0414
+      },
+      {
+        "status": 200,
+        "seconds": 0.1155
+      },
+      {
+        "status": 200,
+        "seconds": 0.1021
+      },
+      {
+        "status": 200,
+        "seconds": 0.1811
+      },
+      {
+        "status": 200,
+        "seconds": 0.128
+      },
+      {
+        "status": 200,
+        "seconds": 0.0276
+      },
+      {
+        "status": 200,
+        "seconds": 0.1189
+      },
+      {
+        "status": 200,
+        "seconds": 0.1028
+      },
+      {
+        "status": 200,
+        "seconds": 0.0221
+      },
+      {
+        "status": 200,
+        "seconds": 0.0963
+      },
+      {
+        "status": 200,
+        "seconds": 0.2155
+      },
+      {
+        "status": 200,
+        "seconds": 0.0495
+      },
+      {
+        "status": 200,
+        "seconds": 0.1287
+      },
+      {
+        "status": 200,
+        "seconds": 0.0324
+      },
+      {
+        "status": 200,
+        "seconds": 0.119
+      },
+      {
+        "status": 200,
+        "seconds": 0.146
+      },
+      {
+        "status": 200,
+        "seconds": 0.0298
+      },
+      {
+        "status": 200,
+        "seconds": 0.1043
+      },
+      {
+        "status": 200,
+        "seconds": 0.05
+      },
+      {
+        "status": 200,
+        "seconds": 0.1225
+      },
+      {
+        "status": 200,
+        "seconds": 0.0357
+      },
+      {
+        "status": 200,
+        "seconds": 0.1008
+      },
+      {
+        "status": 200,
+        "seconds": 0.0204
+      },
+      {
+        "status": 200,
+        "seconds": 0.0256
+      },
+      {
+        "status": 200,
+        "seconds": 0.1092
+      },
+      {
+        "status": 200,
+        "seconds": 0.0502
+      },
+      {
+        "status": 200,
+        "seconds": 0.071
+      },
+      {
+        "status": 200,
+        "seconds": 0.0204
+      },
+      {
+        "status": 200,
+        "seconds": 0.1327
+      },
+      {
+        "status": 200,
+        "seconds": 0.0302
+      },
+      {
+        "status": 200,
+        "seconds": 0.0721
+      },
+      {
+        "status": 200,
+        "seconds": 0.1589
+      },
+      {
+        "status": 200,
+        "seconds": 0.0977
+      },
+      {
+        "status": 200,
+        "seconds": 0.0354
+      },
+      {
+        "status": 200,
+        "seconds": 0.0924
+      },
+      {
+        "status": 200,
+        "seconds": 0.0302
+      },
+      {
+        "status": 200,
+        "seconds": 0.0341
+      },
+      {
+        "status": 200,
+        "seconds": 0.075
+      },
+      {
+        "status": 200,
+        "seconds": 0.0148
+      },
+      {
+        "status": 200,
+        "seconds": 0.0935
+      },
+      {
+        "status": 200,
+        "seconds": 0.0587
+      },
+      {
+        "status": 200,
+        "seconds": 0.0706
+      },
+      {
+        "status": 200,
+        "seconds": 0.11
+      },
+      {
+        "status": 200,
+        "seconds": 0.0849
+      },
+      {
+        "status": 200,
+        "seconds": 0.0536
+      },
+      {
+        "status": 200,
+        "seconds": 0.0975
+      },
+      {
+        "status": 200,
+        "seconds": 0.0343
+      },
+      {
+        "status": 200,
+        "seconds": 0.0474
+      },
+      {
+        "status": 200,
+        "seconds": 0.0967
+      },
+      {
+        "status": 200,
+        "seconds": 0.0287
+      },
+      {
+        "status": 200,
+        "seconds": 0.0889
+      },
+      {
+        "status": 200,
+        "seconds": 0.0613
+      },
+      {
+        "status": 200,
+        "seconds": 0.0223
+      },
+      {
+        "status": 200,
+        "seconds": 0.1065
+      },
+      {
+        "status": 200,
+        "seconds": 0.0841
+      },
+      {
+        "status": 200,
+        "seconds": 0.1097
+      },
+      {
+        "status": 200,
+        "seconds": 0.0915
+      },
+      {
+        "status": 200,
+        "seconds": 0.0507
+      },
+      {
+        "status": 200,
+        "seconds": 0.116
+      },
+      {
+        "status": 200,
+        "seconds": 0.0298
+      },
+      {
+        "status": 200,
+        "seconds": 0.0997
+      },
+      {
+        "status": 200,
+        "seconds": 0.0479
+      },
+      {
+        "status": 200,
+        "seconds": 0.0402
+      },
+      {
+        "status": 200,
+        "seconds": 0.0818
+      },
+      {
+        "status": 200,
+        "seconds": 0.0322
+      },
+      {
+        "status": 200,
+        "seconds": 0.0832
+      },
+      {
+        "status": 200,
+        "seconds": 0.0873
+      },
+      {
+        "status": 200,
+        "seconds": 0.0305
+      },
+      {
+        "status": 200,
+        "seconds": 0.0757
+      },
+      {
+        "status": 200,
+        "seconds": 0.0476
+      },
+      {
+        "status": 200,
+        "seconds": 0.0884
+      },
+      {
+        "status": 200,
+        "seconds": 0.102
+      },
+      {
+        "status": 200,
+        "seconds": 0.0171
+      },
+      {
+        "status": 200,
+        "seconds": 0.1323
+      },
+      {
+        "status": 200,
+        "seconds": 0.0204
+      },
+      {
+        "status": 200,
+        "seconds": 0.0456
+      },
+      {
+        "status": 200,
+        "seconds": 0.0812
+      },
+      {
+        "status": 200,
+        "seconds": 0.0896
+      },
+      {
+        "status": 200,
+        "seconds": 0.0564
+      },
+      {
+        "status": 200,
+        "seconds": 0.0526
+      },
+      {
+        "status": 200,
+        "seconds": 0.0132
+      },
+      {
+        "status": 200,
+        "seconds": 0.1031
+      },
+      {
+        "status": 200,
+        "seconds": 0.0294
+      },
+      {
+        "status": 200,
+        "seconds": 0.0639
+      },
+      {
+        "status": 200,
+        "seconds": 0.0806
+      },
+      {
+        "status": 200,
+        "seconds": 0.09
+      },
+      {
+        "status": 200,
+        "seconds": 0.0896
+      },
+      {
+        "status": 200,
+        "seconds": 0.0286
+      },
+      {
+        "status": 200,
+        "seconds": 0.1776
+      },
+      {
+        "status": 200,
+        "seconds": 0.0095
+      }
+    ]
+  },
+  "browser": {
+    "confirmed": [
+      "Brave newest-epoch sorting: CLUSTER II-FM7 121.9 d, CXO 122.5 d, XMM-NEWTON 123.2 d",
+      "Brave Recent elements: zero matches; reset All element ages: 996 matches"
+    ],
+    "forecast_injection": "Real browser fetch wrapper ignored abort, delayed old ABS-2A response 3 s and shortened it to 3 samples, new ABS-3A response delayed 100 ms. UI subsequently showed selected ABS-3A with 61 states and no loading text. Completion-trace query was not captured; full late-response acceptance remains partial.",
+    "blank_surface": "Chrome initially showed blank screenshot despite HTTP 200 assets/API requests; reconnecting native app exposed populated workspace and rendered globe. Root cause unresolved.",
+    "console": "Chrome one eval CSP Issue without diagnostic source; Brave one context-loss info after navigation before injection. Not full console clearance.",
+    "stop": "Owner requested leaving Brave alone. No further browser actions. Local Brave tab retains fetch override until reload."
+  },
+  "docker": "No reachable daemon",
+  "scope": "Documentation/evidence only. No source, dependency, fixture, license, deployment, Render, commit or push changes.",
+  "final_state": {
+    "servers": "stopped; no listeners on ports 8000/3000",
+    "git_diff_check": "passed",
+    "changes": "uncommitted documentation and evidence only"
+  }
+}

@@ -206,3 +206,47 @@ Continue release verification before advanced features: diagnose blank reload an
 Final source diff review and `git diff --check` passed; final documentation check is recorded at handoff. No commit, push, deployment or Render changes performed.
 
 Owner subsequently requested a stop-for-day checkpoint. Local API/static servers were stopped; continuation and explicit push commands saved in NEXT_SESSION.md/HANDOFF.md. Remaining checks are deferred, not passed.
+
+
+## Continuation checkpoint — 21 October 2026
+
+Started clean on `orbital-guardian-research-workspace` at **0182cbcf290ca7393c13da2483d6a25c46741dc4**; the owner had committed the previous checkpoint. Inspected status/diff and continuation documents before edits. This session changes documentation/evidence only. No application source, fixtures, dependencies, architecture, licensing, deployment or Render settings changed; no commit/push performed.
+
+### Executed checks
+
+- Backend unittest: **22 passed**, 0.792 s. `pip check`: no broken requirements. Existing HTTPX deprecation warning remains.
+- Frontend lint: passed; **6 tests passed**, 1.394 s; production build passed (`main.27c03b43.js`, 265.61 kB gzip). Existing Browserslist age and punycode notices remain. No TypeScript check exists.
+- Read-only GitHub API confirms [run 39424127127](https://github.com/shasshaank/Orbital-Guardian-2.0/actions/runs/39424127127) completed successfully for the full starting SHA above. This covers current application code, not subsequently added documentation. Initial sandbox DNS failure was retried with escalation. No workflow triggered.
+- Docker CLI again cannot connect to the local daemon. Container verification and portable dependency locking remain open.
+- Re-read the retained 18 October npm audit report: 98 affected package entries, unchanged historical evidence, **not a fresh audit**. Direct-package suggested fixes include `react-scripts@0.0.0` and a Tailwind major; no automatic remediation applied. Existing security review remains unresolved.
+
+### Maximum-horizon real HTTP evidence
+
+Started offline Uvicorn on **127.0.0.1:8000** and the existing production build on **127.0.0.1:3000** after checking listeners; sandbox binds/HTTP connections required escalation. Used Python requests against actual sockets, one pair followed by one asset scan, with sequential health probes from a second client thread during the scan. Browser activity also occurred on this host; these are individual observations, not controlled benchmark distributions or production SLOs.
+
+| Check | Observed result |
+|---|---|
+| CALSPHERE 1/2, fixed 2026-06-20 00:00 UTC, 168 h, 1-minute grid | HTTP 200; 10,081 samples per path; 7,347,838 bytes; 0.6641 s |
+| ISS asset scan, 168 h, current start 2026-10-21T12:33:21.640638+00:00 | HTTP 200; 99.1311 s wall time / 99,070.72 ms reported processing; 2,707 bytes |
+| Scan accounting | 500 attempted = 496 successful + 4 failed; 15,829 candidates; truncated=true; 4 flagged rows |
+| Health requests overlapping scan (including final probe near completion) | 92/92 HTTP 200; observed range 0.0095–0.2155 s |
+
+The pair extends the previous TestClient evidence to sockets. The scan demonstrates the maximum horizon completes for this bundled dataset, while quantifying substantial CPU time. It does **not** prove acceptable multi-client throughput, memory bounds, server-side cancellation, timeout behavior through a hosting proxy, or exhaustive conjunction assessment. No API limits were changed. Raw observations are in [verification-2026-10-21.json](verification-2026-10-21.json); the transient reproduction script is `/tmp/orbital-http-verification.py` (not a persistent repository artifact). Repeat using a single offline Uvicorn process, `/collision-check` with those bundled TLEs and parameters, then `/asset-scan?catnr=25544&hours=168`, probing `/health` roughly once per second until completion.
+
+### Actual browser progress and limitations
+
+- Chrome initially exposed only a blank surface, despite server logs showing successful HTML/JS/CSS/font/texture/health/catalogue/forecast requests. Reconnecting native CUA then exposed a populated AX tree and screenshot with textured globe, 996 objects and 61 ISS states. No fresh navigation was needed for that observation. This suggests an observation/input issue is possible, but **does not establish the blank-reload root cause or close it**.
+- Chrome DevTools still showed one eval CSP Issue; source not diagnosed. No security settings changed. In Brave, before fault injection, console showed a context-loss informational message after navigating away from the globe; no application exception in that limited capture. Full console/Issues clearance remains unverified.
+- Brave full catalogue **Newest epoch sorting passed**: leading objects CLUSTER II-FM7 (121.9 d), CXO (122.5 d), XMM-NEWTON (123.2 d). **Filter reset passed**: Recent elements gave zero matches; keyboard Home/Return on freshness restored All element ages and 996 matches, retaining newest-epoch sort.
+- Brave console measured width/height/scrollWidth **632/819/632** with DevTools docked. This is not an additional standard mobile/tablet acceptance claim.
+- Browser forecast fault injection progressed: a console-only fetch wrapper used real responses, ignored abort deliberately, delayed old ABS-2A by 3 seconds and shortened it to 3 samples; switched to ABS-3A after 250 ms, with its response delayed 100 ms. Later AX showed **ABS-3A selected, 61 forecast states, loading text cleared**. The final completion-trace console query was not captured because native input was interrupted. Treat this as partial browser late-response evidence, not full cancellation acceptance. A preceding delayed CLUSTER/ABS-2 switch also reached ABS-2 loading state; no stronger claim from that attempt.
+- Native input sometimes silently failed, returned `noWindowsAvailable`, or reported an external application change. Attempts without changed visible state were not counted. Screenshots are conversation-only.
+- Owner explicitly requested **leave Brave alone and record remaining browser checks**. No further browser actions taken. The local Brave test tab retains the temporary fetch wrapper; **reload that tab before further verification to restore native fetch**. No source/build files contain this injection.
+
+### Remaining release gates
+
+Still incomplete: blank-reload diagnosis, CSP origin/full console clearance; globe picking/drag/reset; remaining 390px/tablet controls and touch table scrolling; comprehensive keyboard/focus and reduced motion; forced WebGL/error boundary; full slow-request completion/cancellation evidence for forecast/pair/maneuver and maneuver zero/null/assumptions UI. Browser work stopped at the owner's direction. Docker requires a reachable daemon; compatible security remediation and validated portable backend locking remain open. Root license and original Earth texture provenance remain unknown. Stage 3/4 and deployment remain deferred. This checkpoint is **not release-ready**.
+
+Local offline API and static production server were stopped after verification; listener check found neither port 8000 nor 3000 listening. Final documentation/evidence review and `git diff --check` passed. Changes remain uncommitted.
+
+Owner then requested stopping for the day, push commands and a token-efficient continuation. Replaced the accumulated NEXT_SESSION.md prompts with the current state, targeted reading instructions and remaining-task file map; retained historical evidence here. Saved explicit documentation-only staging/commit/push commands in HANDOFF.md. No new application checks needed for these documentation edits; final `git diff --check` passed. Agent did not commit or push.
