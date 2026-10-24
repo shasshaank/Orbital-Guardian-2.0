@@ -110,3 +110,53 @@ test('changing pair selection aborts slow request and ignores late response', as
   expect(container.textContent).not.toContain('12,345');
   expect(container.textContent).not.toContain('Screening pair');
 });
+
+test('a cancelled forecast cannot replace the new selection with a late error', async () => {
+  const original = fetch;
+  let fail, signal;
+  global.fetch = jest.fn((url, options) => {
+    if (url.includes('/propagate?') && url.includes('line1-a')) {
+      signal = options.signal;
+      return new Promise((resolve, reject) => { fail = reject; });
+    }
+    return original(url, options);
+  });
+  await render(<App />);
+  await click('Object catalogue');
+  await click('BETA');
+  expect(signal.aborted).toBe(true);
+  await act(async () => fail(new Error('Obsolete forecast failed')));
+  expect(container.textContent).not.toContain('Obsolete forecast failed');
+  expect(container.querySelector('input[type="range"]').disabled).toBe(false);
+});
+
+test.each(['Run pair screen', 'Scan primary asset'])('cancelled %s ignores late errors while replacement work remains pending', async action => {
+  const Workbench = require('./components/ConjunctionWorkbench').default;
+  const pending = [];
+  global.fetch = jest.fn((url, options) => new Promise((resolve, reject) => pending.push({ reject, signal: options.signal })));
+  await render(<Workbench objects={objects} selected={objects[0]} comparison={objects[1]} onCompare={() => {}} />);
+  await click(action);
+  await change(container.querySelector('[name="look-ahead"]'), '6');
+  await click(action);
+  expect(pending[0].signal.aborted).toBe(true);
+  expect(pending[1].signal.aborted).toBe(false);
+  await act(async () => pending[0].reject(new Error('Obsolete screen failed')));
+  expect(container.querySelector('[role="alert"]')).toBeNull();
+  expect(container.querySelector('[role="status"]')).not.toBeNull();
+});
+
+test('cancelled maneuver errors cannot contaminate replacement candidates', async () => {
+  const ManeuverPanel = require('./components/ManeuverPanel').default;
+  const pending = [];
+  global.fetch = jest.fn((url, options) => new Promise((resolve, reject) => pending.push({ resolve, reject, signal: options.signal })));
+  await render(<ManeuverPanel threatParams={{ threat_distance_km: 1 }} />);
+  await render(<ManeuverPanel threatParams={{ threat_distance_km: 0 }} />);
+  expect(pending[0].signal.aborted).toBe(true);
+  await act(async () => pending[1].resolve({ ok: true, json: async () => ({ primary: { delta_v_m_s: 0, burn_direction: { x: 0, y: 1, z: 0 } }, tradeoffs: [{ delta_v_m_s: null }], assumptions: ['Illustrative only'] }) }));
+  await act(async () => pending[0].reject(new Error('Obsolete maneuver failed')));
+  expect(container.querySelector('[role="alert"]')).toBeNull();
+  expect(container.querySelector('tbody').textContent).toContain('0.000');
+  expect(container.querySelector('tbody').textContent).toContain('Unavailable');
+  expect(container.querySelector('details').textContent).toContain('Illustrative only');
+  expect(container.querySelector('[role="status"]')).toBeNull();
+});

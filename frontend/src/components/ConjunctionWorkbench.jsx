@@ -45,7 +45,7 @@ export default function ConjunctionWorkbench({ objects, selected, comparison, on
         const data = await request('/asset-scan', { catnr: a.norad_id, hours }, c.signal);
         if (!c.signal.aborted) setScan(data);
       }
-    } catch (e) { if (e.name !== 'AbortError') setError(e.message); }
+    } catch (e) { if (!c.signal.aborted && e.name !== 'AbortError') setError(e.message); }
     finally { if (!c.signal.aborted) setBusy(''); }
   }
   const risks = (scan?.risks || []).filter(r => severity === 'all' || r.risk_level === severity).sort((x, y) => sort === 'time' ? Date.parse(x.closest_event.time) - Date.parse(y.closest_event.time) : x.min_distance_km - y.min_distance_km);

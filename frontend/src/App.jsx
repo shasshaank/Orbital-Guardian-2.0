@@ -45,7 +45,7 @@ export default function App() {
       if (c.signal.aborted) return;
       if (!Array.isArray(data) || !data.length) throw new Error('No trajectory samples returned.');
       setTrajectory(data);
-    }).catch(e => { if (e.name !== 'AbortError') setOrbitError(e.message); }).finally(() => { if (!c.signal.aborted) setOrbitLoading(false); });
+    }).catch(e => { if (!c.signal.aborted && e.name !== 'AbortError') setOrbitError(e.message); }).finally(() => { if (!c.signal.aborted) setOrbitLoading(false); });
     return () => c.abort();
   }, [selected]);
   const select = useCallback(object => { setSelected(object); setSample(null); }, []);

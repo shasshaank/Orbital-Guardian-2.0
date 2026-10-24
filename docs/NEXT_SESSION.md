@@ -1,4 +1,4 @@
-# Focused continuation — 21 October 2026
+# Focused continuation — 24 October 2026
 
 Continue on `orbital-guardian-research-workspace`. Preserve all uncommitted work. Finish release verification before advanced features. Do not deploy, alter Render, invent licenses, blindly upgrade dependencies or rewrite architecture.
 
@@ -11,9 +11,9 @@ Continue on `orbital-guardian-research-workspace`. Preserve all uncommitted work
 
 ## Current state and completed evidence
 
-- Last observed HEAD: `0182cbcf290ca7393c13da2483d6a25c46741dc4`. Owner will commit/push today's documentation checkpoint; inspect actual HEAD rather than assuming this SHA remains current.
-- Today's changes are documentation/evidence only. Application code, fixtures, dependencies and licenses unchanged. No agent commit/push/deployment. Local API/static servers stopped; no listeners on 8000/3000 at stop.
-- 22 backend tests, 6 frontend tests, lint, production build and pip check passed on 21 October. Build `main.27c03b43.js`. Hosted run **39424127127** passed for the full SHA above, not the forthcoming documentation commit.
+- Last observed HEAD: `1beaa1f0eb174f0990f00cfee574e26658020107`. Started clean on 24 October; current cancellation fixes/tests and evidence updates remain uncommitted. Inspect actual status/diff and preserve them.
+- 24 October: fixed obsolete non-AbortError messages after forecast, pair/scan and maneuver cancellation; four regression cases failed before/passed after. Maneuver component also checks zero/null Δv and assumptions. Browser acceptance remains open. No browser controlled (Brave untouched), servers started, agent commit/push/deployment, dependency or licensing changes.
+- 24 October: 22 backend tests, 10 frontend tests, lint and production build passed (`main.7aa94029.js`). Pip check last passed 21 October. Hosted run **39424127127** covers `0182cbcf290ca7393c13da2483d6a25c46741dc4`, not current HEAD or uncommitted changes.
 - Already verified: real WebGL/texture/markers/path/font; exact 1366×768 layout; selected 390px/768px layouts and fixed mobile overflow; zoom/layer toggles; timeline end/reset; catalogue search/pagination/altitude/newest-epoch sorting and freshness reset; production single catalogue request; outage/retained snapshot/retry; real pair/capped scan and live HTTPS stations ingestion. These are scoped passes, not comprehensive browser/accessibility acceptance.
 - Maximum-horizon actual HTTP: pair 168 h, 10,081 samples/path, 7.35 MB, 0.6641 s. ISS scan 168 h: 500 attempts, 496 successes/4 failures, 99.1311 s; 92 overlapping health probes all 200. Not multi-client capacity, memory, cancellation or proxy-timeout evidence. Do not repeat this expensive scan without a specific reason.
 - Same-host clean installs previously passed; backend transitives drifted. No portable/hash lock exists. Historical npm audit: 98 affected package entries; unresolved, not current security clearance.

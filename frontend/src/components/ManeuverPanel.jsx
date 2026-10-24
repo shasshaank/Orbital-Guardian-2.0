@@ -8,7 +8,7 @@ export default function ManeuverPanel({ threatParams }) {
     if (!threatParams) { setResult(null); setError(''); setLoading(false); return; }
     const controller = new AbortController();
     setLoading(true); setError(''); setResult(null);
-    request('/maneuver-recommend', threatParams, controller.signal).then(data => { if (!controller.signal.aborted) setResult(data); }).catch(e => { if (e.name !== 'AbortError') setError(e.message); }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    request('/maneuver-recommend', threatParams, controller.signal).then(data => { if (!controller.signal.aborted) setResult(data); }).catch(e => { if (!controller.signal.aborted && e.name !== 'AbortError') setError(e.message); }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [threatParams]);
   return <section className="candidate-panel"><span className="eyebrow">DECISION SUPPORT / EXPERIMENTAL</span><h3>Manoeuvre candidates</h3>
