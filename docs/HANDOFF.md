@@ -152,3 +152,37 @@ Next-session prompt:
 ```text
 Continue Orbital Guardian 2.0 on orbital-guardian-research-workspace. Read docs/NEXT_SESSION.md first and follow its focused reading instructions. Inspect git status/diff and preserve all uncommitted work. Read only the latest relevant VERIFICATION.md section and source files needed for the selected remaining task; do not re-audit the project or repeat completed verification. Finish release verification before advanced features. Leave Brave alone unless I explicitly authorize it. Do not deploy, alter Render, invent licenses or blindly upgrade dependencies.
 ```
+
+## Current checkpoint — owner Phases 1 and 2, 24 October 2026
+
+Use NEXT_SESSION.md for current state and the preserved remaining Phases 3–8. Native OMM ingestion, full identifiers, provider-policy caching/cooldowns, safe fallback and truthful source/freshness UI are implemented. 43 backend tests, 17 frontend tests, lint/build pass locally. Real CelesTrak active ingestion and cached OMM/API checks succeeded. Details, commands and caveats: DATA_PIPELINE.md and the final VERIFICATION.md section. Updated implementation is uncommitted, based on `e5ccb0310fb6d28fe5856ded10f607462ba59d66`; hosted CI run 40111775775 covers that starting commit only. No push, merge, deployment, production mutation, Render setting change, dependency upgrade, licence choice or browser control performed.
+
+### Push the reviewed Phase 1/2 checkpoint
+
+Run from the existing feature branch. Review status and the staged diff; exclude unrelated changes that may have arrived after this handoff. The paths below include this session's application/tests/configuration/documentation and exclude bundled/runtime data, secrets, environments, dependencies and generated builds.
+
+```bash
+cd /Users/shashaankjain/Desktop/Orbital-Guardian-2.0
+git branch --show-current
+git status -sb
+git diff --check
+
+git add README.md backend/.env.example
+git add backend/app/catalog_provider.py backend/app/main.py backend/app/maneuver_engine.py
+git add backend/app/orbital_data.py backend/app/propagator.py backend/app/tle_fetcher.py
+git add backend/scripts/benchmark_cache.py backend/scripts/verify_provider.py
+git add backend/tests/fixtures/omm_vanguard.json backend/tests/test_ingestion.py backend/tests/test_omm.py
+git add frontend/src/App.jsx frontend/src/App.test.jsx frontend/src/api.js frontend/src/index.css
+git add frontend/src/components/Catalogue.jsx frontend/src/components/ConjunctionWorkbench.jsx frontend/src/components/ObjectInspector.jsx
+git add docs/CHANGED_FILES.txt docs/DATA_PIPELINE.md docs/HANDOFF.md docs/NEXT_SESSION.md
+git add docs/PROJECT_AUDIT.md docs/TECHNICAL_ROADMAP.md docs/VERIFICATION.md docs/verification-phase12-2026-10-24.json
+
+git diff --cached --check
+git diff --cached --stat
+git diff --cached
+git commit -m "Add native OMM ingestion and explicit source freshness"
+git push origin orbital-guardian-research-workspace
+git rev-parse HEAD
+```
+
+Expected branch is `orbital-guardian-research-workspace`; do not recreate it or switch to main. No force push. These commands do not authorize a merge or deployment. After pushing, verify GitHub Actions for the printed exact SHA; a prior CI pass does not cover it. Future deployment remains **no-go** pending recorded browser/security/licensing/Docker and contract/configuration gates.

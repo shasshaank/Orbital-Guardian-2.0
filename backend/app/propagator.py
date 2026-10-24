@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from sgp4.api import jday, SGP4_ERRORS
 from sgp4.propagation import gstime
-from .orbital_data import validated_satellite
+from .orbital_data import satellite_from_elements
 
 
 def utc_time(value=None):
@@ -29,10 +29,10 @@ def state_at(satellite, at):
                 frame='TEME', geodetic_model='WGS84; GMST; UTC≈UT1; polar motion omitted')
 
 
-def propagate_satellite(line1, line2, hours_ahead=24, step_minutes=10, start_time=None):
+def propagate_satellite(line1=None, line2=None, hours_ahead=24, step_minutes=10, start_time=None, omm=None):
     if not 1 <= hours_ahead <= 168 or not 1 <= step_minutes <= 60:
         raise ValueError('Unsupported propagation window or step.')
-    sat = validated_satellite(line1, line2)
+    sat = satellite_from_elements(line1, line2, omm)
     start = utc_time(start_time)
     # Include the endpoint and preserve every timestamp; never silently drop a state.
     minutes = list(range(0, int(hours_ahead*60)+1, step_minutes))
@@ -41,9 +41,9 @@ def propagate_satellite(line1, line2, hours_ahead=24, step_minutes=10, start_tim
     return [state_at(sat, start+timedelta(minutes=m)) for m in minutes]
 
 
-def get_current_position(line1, line2, at=None) -> Optional[dict]:
+def get_current_position(line1=None, line2=None, at=None, omm=None) -> Optional[dict]:
     try:
-        return state_at(validated_satellite(line1, line2), utc_time(at))
+        return state_at(satellite_from_elements(line1, line2, omm), utc_time(at))
     except ValueError:
         return None
 

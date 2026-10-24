@@ -8,10 +8,10 @@ import numpy as np
 from .propagator import get_current_position
 
 
-def recommend_maneuver(satellite_line1, satellite_line2, threat_direction, threat_distance_km, event_time=None):
+def recommend_maneuver(satellite_line1, satellite_line2, threat_direction, threat_distance_km, event_time=None, omm=None):
     if not math.isfinite(threat_distance_km) or threat_distance_km < 0:
         raise ValueError('Distance must be finite and non-negative.')
-    state = get_current_position(satellite_line1, satellite_line2, at=event_time)
+    state = get_current_position(satellite_line1, satellite_line2, at=event_time, **({"omm": omm} if omm else {}))
     if state is None:
         raise ValueError('No valid state available for a maneuver candidate.')
     vel = np.array([state['velocity_km_s'][k] for k in 'xyz'])

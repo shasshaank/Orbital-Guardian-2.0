@@ -160,3 +160,64 @@ test('cancelled maneuver errors cannot contaminate replacement candidates', asyn
   expect(container.querySelector('details').textContent).toContain('Illustrative only');
   expect(container.querySelector('[role="status"]')).toBeNull();
 });
+
+test.each([
+  ['live', 'fresh', false, 'Retrieved from provider'],
+  ['cache', 'fresh', false, 'Fresh cached catalogue'],
+  ['cache', 'stale', true, 'Stale cached catalogue'],
+  ['fallback', 'bundled', true, 'Bundled fallback catalogue'],
+  ['unavailable', 'unavailable', true, 'Source unavailable']
+])('source status %s/%s is explicit and retrieval remains separate from epoch', async (mode, cache_status, is_stale, label) => {
+  const original = fetch;
+  global.fetch = jest.fn(async (url, options) => url.includes('/catalog?') ? {
+    ok: true, json: async () => ({ objects: mode === 'unavailable' ? [] : objects, metadata: {
+      mode, cache_status, is_stale, source: 'CelesTrak GP', group: 'stations', stale_count: 1,
+      retrieved_at: mode === 'fallback' || mode === 'unavailable' ? null : '2026-10-02T12:00:00Z',
+      last_error: is_stale ? 'Provider refresh paused' : null
+    } })
+  } : original(url, options));
+  await render(<App />);
+  expect(container.querySelector('.source-notice').textContent).toContain(label);
+  expect(container.querySelector('[role="alert"]')?.textContent || '').toBe(is_stale ? 'Provider refresh paused' : '');
+  expect(container.querySelector('.source-notice').textContent).toContain(
+    mode === 'fallback' || mode === 'unavailable' ? 'Original retrieval time unknown' : '2026-10-02 12:00:00 UTC');
+  expect(container.querySelector('.inspector')?.textContent || '').toContain(mode === 'unavailable' ? '' : '2026-09-01 00:00:00 UTC');
+});
+
+test('native OMM survives catalogue selection, forecast, pair and candidate requests', async () => {
+  const native = objects.map((object, i) => {
+    const { line1, line2, ...rest } = object;
+    return { ...rest, norad_id: i ? 799500001 : 100001,
+      omm: { NORAD_CAT_ID: i ? 799500001 : 100001, EPOCH: object.epoch, MEAN_MOTION: 15.12345678 } };
+  });
+  global.fetch = jest.fn(async url => {
+    const path = new URL(url).pathname;
+    const data = path === '/catalog' ? { objects: native, metadata: { mode: 'cache', cache_status: 'fresh', source: 'CelesTrak GP', retrieved_at: '2026-10-02T12:00:00Z' } } :
+      path === '/health' ? { status: 'ok' } : path === '/propagate' ? states :
+      path === '/collision-check' ? { risk_level: 'WARNING', min_distance_km: 0, closest_event: { time: states[0].time, position_a: { x: 1, y: 2, z: 3 }, position_b: { x: 1, y: 2, z: 3 } } } :
+      { primary: { delta_v_m_s: 0, burn_direction: { x: 0, y: 0, z: 1 } }, assumptions: ['Not a validated burn'] };
+    return { ok: true, json: async () => data };
+  });
+  await render(<App />);
+  const forecast = new URL(fetch.mock.calls.find(([url]) => url.includes('/propagate?'))[0]);
+  expect(JSON.parse(forecast.searchParams.get('omm'))).toEqual(native[0].omm);
+  expect(forecast.searchParams.has('line1')).toBe(false);
+  expect(container.querySelector('.inspector pre').textContent).toContain('100001');
+  await click('Conjunction analysis');
+  await change(container.querySelector('[name="comparison-object"]'), '799500001');
+  await click('Run pair screen');
+  const pair = new URL(fetch.mock.calls.find(([url]) => url.includes('/collision-check?'))[0]);
+  expect(JSON.parse(pair.searchParams.get('omm_b')).NORAD_CAT_ID).toBe(799500001);
+  const candidate = new URL(fetch.mock.calls.find(([url]) => url.includes('/maneuver-recommend?'))[0]);
+  expect(JSON.parse(candidate.searchParams.get('omm'))).toEqual(native[0].omm);
+  expect(candidate.searchParams.get('threat_distance_km')).toBe('0');
+  expect(container.textContent).toContain('Not a validated burn');
+});
+
+test('unknown and unavailable epochs have distinct accessible descriptions', async () => {
+  await render(<Catalogue objects={[{ ...objects[0], freshness: 'unknown', epoch_age_days: null }, { ...objects[1], freshness: 'unavailable', epoch_age_days: null }]} onSelect={() => {}} />);
+  expect(container.querySelector('tbody').textContent).toContain('Unknown element epoch');
+  expect(container.querySelector('tbody').textContent).toContain('Elements unavailable');
+  await change(container.querySelector('[aria-label="Filter by element freshness"]'), 'unknown');
+  expect(container.querySelector('tbody').textContent).not.toContain('BETA');
+});

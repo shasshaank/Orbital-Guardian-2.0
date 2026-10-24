@@ -3,7 +3,7 @@ Orbital Guardian API — FastAPI application entry point.
 
 Endpoints:
   GET /health               — Health check
-  GET /satellites           — Fetch live TLE data from Celestrak
+  GET /satellites           — Fetch validated public orbital elements from CelesTrak
   GET /propagate            — Propagate a satellite's orbit (SGP4)
   GET /collision-check      — Check collision risk between two satellites
   GET /maneuver-recommend   — Get unvalidated maneuver candidates
@@ -13,8 +13,9 @@ from fastapi import FastAPI, HTTPException, Query
 from datetime import datetime, timezone
 import os
 import math
+import json
 import time
-from .orbital_data import element_metadata, validated_satellite
+from .orbital_data import satellite_from_elements, record_args, record_metadata
 from .propagator import utc_time
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -31,8 +32,8 @@ from .maneuver_engine import recommend_maneuver
 app = FastAPI(
     title="Orbital Guardian API",
     description=(
-        "Public-TLE Orbital Analysis Research Workspace. "
-        "Provides public-TLE snapshots, orbital propagation, collision "
+        "Public Orbital-Element Research Workspace. "
+        "Provides published orbital-element snapshots, orbital propagation, collision "
         "screening, and unvalidated heuristic maneuver candidates."
     ),
     version="1.0.0",
@@ -62,48 +63,58 @@ def health_check() -> dict:
     return {"status": "ok", "service": "Orbital Guardian API"}
 
 
-def catalog_response(group, limit):
+def catalog_response(group, limit, offset=0):
     started = time.perf_counter()
-    catalog = get_catalog(group)
+    try:
+        catalog = get_catalog(group)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     at = datetime.now(timezone.utc)
     objects, failed = [], 0
-    for sat in catalog['records'][:limit]:
-        pos = get_current_position(sat['line1'], sat['line2'], at=at)
+    for sat in catalog['records'][offset:offset+limit]:
+        pos = get_current_position(**record_args(sat), at=at)
         if pos is None:
             failed += 1
             continue
-        objects.append({**sat, **element_metadata(sat['line1'], sat['line2'], at),
-                        **pos, 'source': catalog['source'], 'retrieved_at': catalog['retrieved_at']})
+        objects.append({**sat, **record_metadata(sat, at),
+                        **pos, 'source': catalog['source'], 'retrieved_at': catalog['retrieved_at'],
+                        'snapshot_id': catalog.get('snapshot_id'), 'element_format': 'OMM JSON' if sat.get('omm') else 'TLE'})
     metadata = {k: v for k, v in catalog.items() if k != 'records'}
     metadata.update(catalog_count=len(catalog['records']), returned_count=len(objects),
-                    propagation_failed=failed, state_time=at.isoformat(), limit=limit,
+                    propagation_failed=failed, state_time=at.isoformat(), limit=limit, offset=offset,
+                    examined_count=len(catalog['records'][offset:offset+limit]),
+                    next_offset=offset+limit if offset+limit < len(catalog['records']) else None,
                     stale_count=sum(x['freshness'] != 'recent' for x in objects),
                     processing_ms=round((time.perf_counter()-started)*1000, 2),
-                    freshness_policy='Element age >7 days is stale; not an accuracy guarantee.')
+                    freshness_policy='Epoch after state time: future; age 0–7 days: recent; >7 days: stale. Not an accuracy guarantee.',
+                    data_kind='published orbital elements; states are SGP4 predictions, not sensor observations')
     return {'objects': objects, 'metadata': metadata}
 
 
 @app.get('/catalog')
 def catalog(group: str = Query('active', pattern=r'^[a-zA-Z0-9_-]{1,40}$'),
-            limit: int = Query(1000, ge=1, le=6000)):
+            limit: int = Query(1000, ge=1, le=6000),
+            offset: int = Query(0, ge=0, le=50000)):
     """Additive envelope endpoint with source and failure metadata."""
-    return catalog_response(group, limit)
+    return catalog_response(group, limit, offset)
 
 
 @app.get('/satellites')
 def get_satellites(group: str = Query('active', pattern=r'^[a-zA-Z0-9_-]{1,40}$'),
-                   limit: int = Query(1000, ge=1, le=6000)):
+                   limit: int = Query(1000, ge=1, le=6000),
+                   offset: int = Query(0, ge=0, le=50000)):
     """Legacy list shape preserved; records gain provenance fields."""
-    return catalog_response(group, limit)['objects']
+    return catalog_response(group, limit, offset)['objects']
 
 
 @app.get("/propagate")
 def propagate(
-    line1: str = Query(..., description="TLE line 1"),
-    line2: str = Query(..., description="TLE line 2"),
+    line1: str | None = Query(None, max_length=69, description="Legacy TLE line 1"),
+    line2: str | None = Query(None, max_length=69, description="Legacy TLE line 2"),
     hours: int = Query(default=24, ge=1, le=168, description="Hours ahead to propagate"),
     step_minutes: int = Query(default=10, ge=1, le=60, description="Step size in minutes"),
     start_time: datetime | None = Query(default=None),
+    omm: str | None = Query(None, max_length=6000, description="CelesTrak OMM-compatible JSON object"),
 ) -> list[dict]:
     """
     Propagate a satellite's orbit using SGP4.
@@ -118,7 +129,7 @@ def propagate(
         List of position/velocity records with timestamps.
     """
     try:
-        positions = propagate_satellite(line1, line2, hours_ahead=hours, step_minutes=step_minutes, start_time=start_time)
+        positions = propagate_satellite(line1, line2, hours_ahead=hours, step_minutes=step_minutes, start_time=start_time, **({"omm": omm} if omm else {}))
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Propagation failed: {exc}") from exc
 
@@ -130,13 +141,15 @@ def propagate(
 
 @app.get("/collision-check")
 def check_collision(
-    line1_a: str = Query(..., description="Satellite A – TLE line 1"),
-    line2_a: str = Query(..., description="Satellite A – TLE line 2"),
-    line1_b: str = Query(..., description="Satellite B – TLE line 1"),
-    line2_b: str = Query(..., description="Satellite B – TLE line 2"),
+    line1_a: str | None = Query(None, max_length=69, description="Satellite A – legacy TLE line 1"),
+    line2_a: str | None = Query(None, max_length=69, description="Satellite A – legacy TLE line 2"),
+    line1_b: str | None = Query(None, max_length=69, description="Satellite B – legacy TLE line 1"),
+    line2_b: str | None = Query(None, max_length=69, description="Satellite B – legacy TLE line 2"),
     hours: int = Query(default=24, ge=1, le=168, description="Hours ahead to propagate"),
     start_time: datetime | None = Query(default=None),
     step_minutes: int = Query(default=1, ge=1, le=10),
+    omm_a: str | None = Query(None, max_length=6000),
+    omm_b: str | None = Query(None, max_length=6000),
 ) -> dict:
     """
     Check collision risk between two satellites over a given time window.
@@ -151,19 +164,19 @@ def check_collision(
     """
     try:
         start = utc_time(start_time)
-        a = validated_satellite(line1_a, line2_a)
-        b = validated_satellite(line1_b, line2_b)
+        a = satellite_from_elements(line1_a, line2_a, omm_a)
+        b = satellite_from_elements(line1_b, line2_b, omm_b)
         if a.satnum == b.satnum:
             raise ValueError("Select two distinct catalog objects.")
-        pos_a = propagate_satellite(line1_a, line2_a, hours_ahead=hours, step_minutes=step_minutes, start_time=start)
-        pos_b = propagate_satellite(line1_b, line2_b, hours_ahead=hours, step_minutes=step_minutes, start_time=start)
+        pos_a = propagate_satellite(line1_a, line2_a, hours_ahead=hours, step_minutes=step_minutes, start_time=start, **({"omm": omm_a} if omm_a else {}))
+        pos_b = propagate_satellite(line1_b, line2_b, hours_ahead=hours, step_minutes=step_minutes, start_time=start, **({"omm": omm_b} if omm_b else {}))
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Propagation failed: {exc}") from exc
 
     result = calculate_closest_approach(pos_a, pos_b)
     result.update(start_time=start.isoformat(), hours=hours, step_minutes=step_minutes,
-                  elements_a=element_metadata(line1_a, line2_a, start),
-                  elements_b=element_metadata(line1_b, line2_b, start))
+                  elements_a=record_metadata({'omm': json.loads(omm_a)} if omm_a else {'line1': line1_a, 'line2': line2_a}, start),
+                  elements_b=record_metadata({'omm': json.loads(omm_b)} if omm_b else {'line1': line1_b, 'line2': line2_b}, start))
     return result
 
 
@@ -183,10 +196,10 @@ def asset_scan(
 
     all_satellites = fetch_tle_data()
     # Remove primary from candidates
-    candidates = [s for s in all_satellites if s["line1"][2:7] != primary["line1"][2:7]]
-    
+    candidates = [s for s in all_satellites if record_metadata(s)["norad_id"] != catnr]
+
     try:
-        primary_pos = propagate_satellite(primary["line1"], primary["line2"], hours_ahead=hours, start_time=start, step_minutes=1)
+        primary_pos = propagate_satellite(**record_args(primary), hours_ahead=hours, start_time=start, step_minutes=1)
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Failed to propagate primary asset: {exc}")
     risks = []
@@ -195,21 +208,21 @@ def asset_scan(
     # or we can do a broad-phase filter. Here we'll do the top 500 candidates.
     for sat in candidates[:500]:
         try:
-            sat_pos = propagate_satellite(sat["line1"], sat["line2"], hours_ahead=hours, start_time=start, step_minutes=1)
+            sat_pos = propagate_satellite(**record_args(sat), hours_ahead=hours, start_time=start, step_minutes=1)
         except Exception:
             failed += 1
             continue
-            
+
         result = calculate_closest_approach(primary_pos, sat_pos)
         if result["risk_level"] != "SAFE":
             risks.append({
                 "target_name": sat["name"],
-                "norad_id": element_metadata(sat["line1"], sat["line2"])["norad_id"],
+                "norad_id": record_metadata(sat)["norad_id"],
                 "min_distance_km": result["min_distance_km"],
                 "risk_level": result["risk_level"],
                 "closest_event": result["closest_event"]
             })
-    
+
     return {
         "asset": primary["name"],
         "scan_count": len(candidates[:500])-failed,
@@ -221,20 +234,21 @@ def asset_scan(
         "start_time": start.isoformat(),
         "processing_ms": round((time.perf_counter()-started)*1000, 2),
         "method": "sampled separation; first 500 catalog candidates only",
-        "asset_elements": element_metadata(primary["line1"], primary["line2"], start),
+        "asset_elements": record_metadata(primary, start),
         "risks": sorted(risks, key=lambda x: x["min_distance_km"] if x["min_distance_km"] is not None else 999999)
     }
 
 
 @app.get("/maneuver-recommend")
 def maneuver_recommend(
-    line1: str = Query(..., description="Threatened satellite – TLE line 1"),
-    line2: str = Query(..., description="Threatened satellite – TLE line 2"),
+    line1: str | None = Query(None, max_length=69),
+    line2: str | None = Query(None, max_length=69),
     threat_direction_x: float = Query(default=1.0, description="Threat direction X component"),
     threat_direction_y: float = Query(default=0.0, description="Threat direction Y component"),
     threat_direction_z: float = Query(default=0.0, description="Threat direction Z component"),
     threat_distance_km: float = Query(..., ge=0.0, description="Distance to threat object in km"),
     event_time: datetime | None = Query(default=None),
+    omm: str | None = Query(None, max_length=6000),
 ) -> dict:
     """
     Get illustrative, unvalidated maneuver candidates.
@@ -253,10 +267,10 @@ def maneuver_recommend(
         "z": threat_direction_z,
     }
     try:
-        validated_satellite(line1, line2)
+        satellite_from_elements(line1, line2, omm)
         if not all(math.isfinite(v) for v in [*threat_direction.values(), threat_distance_km]):
             raise ValueError("Threat inputs must be finite.")
-        recommendation = recommend_maneuver(line1, line2, threat_direction, threat_distance_km, event_time=event_time)
+        recommendation = recommend_maneuver(line1, line2, threat_direction, threat_distance_km, event_time=event_time, **({"omm": omm} if omm else {}))
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Maneuver computation failed: {exc}") from exc
 

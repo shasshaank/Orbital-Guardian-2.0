@@ -1,13 +1,13 @@
 # Orbital Guardian 2.0
 
-An independent public-TLE orbital research workspace built with React, Three.js and FastAPI. Explore a catalogue, inspect predicted trajectories, compare sampled separations and examine explicitly unvalidated manoeuvre candidates.
+An independent public orbital-element research workspace built with React, Three.js and FastAPI. Explore a catalogue, inspect predicted trajectories, compare sampled separations and examine explicitly unvalidated manoeuvre candidates.
 
 The original project records an **8th-place finish among 389+ teams at the IIT Hyderabad Technical Showcase (March 2026)**. This iteration preserves its SGP4/FastAPI foundation while improving data validation, scientific transparency and analytical usability.
 
 ## What is implemented
 
-- Validated CelesTrak TLE ingestion with checksum/format checking, deduplication, bounded HTTPS requests and per-group caching.
-- Explicit source, retrieval time, element epoch, snapshot time, freshness policy and propagation failures.
+- Native CelesTrak OMM-compatible JSON ingestion, 6-/9-digit catalogue IDs, validated legacy TLE input, deterministic deduplication, bounded verified HTTPS and atomic per-group caching.
+- Explicit provider retrieval, fresh/stale cache, bundled/offline and unavailable states; separate retrieval/element/prediction times, freshness policy and propagation failures.
 - Interactive Earth-fixed globe with instanced markers, shared catalogue selection, layer controls and a discrete two-hour forecast scrubber.
 - Searchable, sortable and filterable catalogue; selected-object element details.
 - Pair screening on a shared UTC grid with relative speed, sampled-separation plot and reproducible inputs.
@@ -42,7 +42,7 @@ HOST=127.0.0.1 PORT=3000 BROWSER=none npm start
 
 Open http://localhost:3000. API documentation: http://localhost:8000/docs.
 
-For live retrieval, omit `ORBITAL_OFFLINE=1`. Optional configuration is documented in `backend/.env.example`; copy it to `backend/.env` to customize. The backend loads this file. The frontend defaults to `http://localhost:8000`; set `REACT_APP_API_URL` in `frontend/.env` before building to use another API. No credentials are needed for public CelesTrak data.
+For live retrieval, omit `ORBITAL_OFFLINE=1`. Optional configuration is documented in `backend/.env.example`; copy it to `backend/.env` to customize. The backend loads this file. The frontend defaults to `http://localhost:8000`; set `REACT_APP_API_URL` in `frontend/.env` before building to use another API. No credentials are needed for public CelesTrak data. Provider downloads are on demand and at least two hours apart; browser refresh reuses the cache. See [data schema, refresh/failure policy and integration commands](docs/DATA_PIPELINE.md). Space-Track is not implemented.
 
 The bundled catalogue contains **June 2026 elements**; it is intentionally reported as stale at current dates. Retrieval time is unknown. Invalid legacy fallback records are rejected, not repaired or relabeled live. Freshness uses a visible seven-day heuristic, not an accuracy guarantee.
 
@@ -63,8 +63,8 @@ CI=true GENERATE_SOURCEMAP=false npm run build
 
 ```mermaid
 flowchart LR
-  C[CelesTrak public TLE feed] --> V[Strict format / checksum / ID validation]
-  F[Read-only legacy catalogue] --> V
+  C[CelesTrak GP OMM-compatible JSON] --> V[Strict elements / epoch / ID validation]
+  F[Read-only legacy TLE catalogue / checksum validation] --> V
   V --> R[Per-group TTL / atomic runtime cache]
   R --> API[FastAPI REST API]
   API --> P[SGP4 / shared UTC grid / TEME km and km/s]
@@ -78,9 +78,11 @@ flowchart LR
   UI --> A[Catalogue / inspector / analysis / source status]
 ```
 
-`frontend/src/index.js` mounts `App.jsx`. `backend/app/main.py` owns the REST routes. `orbital_data.py` validates elements, `tle_fetcher.py` handles ingestion/cache, `propagator.py` computes states, `collision_detector.py` compares aligned samples, and `maneuver_engine.py` returns candidate geometry. There is no database, radar feed, trained AI model or background monitoring service.
+`frontend/src/index.js` mounts `App.jsx`. `backend/app/main.py` owns the REST routes. `orbital_data.py` validates native OMM and TLE elements, `catalog_provider.py` handles CelesTrak transport, `tle_fetcher.py` handles ingestion/cache, `propagator.py` computes states, `collision_detector.py` compares aligned samples, and `maneuver_engine.py` returns candidate geometry. There is no database, radar feed, trained AI model or background monitoring service.
 
 ## API compatibility and changes
+
+Native catalogue objects now contain `omm` rather than synthetic TLE lines; analysis endpoints accept JSON-string `omm` (or `omm_a` / `omm_b`) alongside the existing alternative TLE interface. Frontend and backend must be updated together. `/catalog` supports `offset`/`limit` pagination; the UI still loads at most 1,000 active-group records. See [contract details](docs/DATA_PIPELINE.md).
 
 Existing route names are preserved: `/health`, `/satellites`, `/propagate`, `/collision-check`, `/asset-scan`, `/maneuver-recommend`. `/catalog` adds an envelope with `objects` and `metadata`; `/satellites` retains its list shape with additive metadata fields.
 
@@ -99,7 +101,7 @@ docker build -t orbital-guardian-api .
 docker run --rm -p 127.0.0.1:8000:8000 -e ORBITAL_OFFLINE=1 orbital-guardian-api
 ```
 
-The image now includes bundled data and excludes virtualenv/secrets/runtime cache. Runtime catalogs are written under `backend/data/runtime` locally, or `/app/data/runtime` in Docker. `ORBITAL_CACHE_DIR` can select a writable persistent directory. In-memory caches are per process; no distributed cache coordination exists. The Docker build itself remains unverified in this environment.
+The image now includes bundled data and excludes virtualenv/secrets/runtime cache. Runtime catalogs are written under `backend/data/runtime` locally, or `/app/data/runtime` in Docker. `ORBITAL_CACHE_DIR` can select a writable persistent directory. Memory is per process; filesystem refresh locks coordinate workers sharing a runtime directory on Linux/macOS. No distributed coordination across isolated replicas exists. The Docker build itself remains unverified in this environment.
 
 ## Scientific limits
 
@@ -129,3 +131,10 @@ The project has no affiliation with LeoLabs. Its relevance is in catalog quality
 
 
 21 October: hosted CI passed for `0182cbcf`; 22 backend/6 frontend tests, lint, build and pip check pass. Actual HTTP 168-hour pair returned 10,081 samples/path (7.35 MB); 500-candidate maximum-horizon ISS scan completed in 99.13 s with 496 successful/4 failed and 92 successful overlapping health probes. Brave newest-epoch sort and reset-to-all confirmed. Forecast fault injection remains partial; owner requested leaving Brave alone. Reload local Brave test tab before reuse to remove its temporary fetch wrapper. Docker, browser acceptance, dependency/security/portable locking and licensing remain open. No source/dependency/deployment/Render changes. See [verification evidence](docs/VERIFICATION.md).
+
+
+## Current Phase 1/2 checkpoint — 24 October 2026
+
+Native CelesTrak JSON retrieval succeeded for 16,792 active-group records, including 880 IDs above 99,999; zero malformed records and one explicit current-epoch propagation failure. Fresh cached reads are labeled as cache, and provider failures preserve the valid snapshot with a prominent error. Full provenance, two-hour refresh/cooldown policy, offline operation, API compatibility and limits are documented in [DATA_PIPELINE.md](docs/DATA_PIPELINE.md).
+
+43 backend tests, 17 frontend tests, lint and production build pass locally. This uncommitted implementation is based on `e5ccb0310fb6d28fe5856ded10f607462ba59d66`; hosted CI success covers that starting commit only. Phases 3–8, optional Space-Track, browser acceptance, dependency/portable locking, Docker and licensing remain open. No classification metadata/glyph redesign, deployment, Render changes or merge was performed. Continue with [NEXT_SESSION.md](docs/NEXT_SESSION.md); exact evidence is in [VERIFICATION.md](docs/VERIFICATION.md).

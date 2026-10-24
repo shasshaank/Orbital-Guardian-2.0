@@ -1,3 +1,34 @@
+Owner Phases 1 and 2 — 24 October 2026 (uncommitted paths)
+README.md
+backend/.env.example
+backend/app/catalog_provider.py
+backend/app/main.py
+backend/app/maneuver_engine.py
+backend/app/orbital_data.py
+backend/app/propagator.py
+backend/app/tle_fetcher.py
+backend/scripts/benchmark_cache.py
+backend/scripts/verify_provider.py
+backend/tests/fixtures/omm_vanguard.json
+backend/tests/test_ingestion.py
+backend/tests/test_omm.py
+docs/CHANGED_FILES.txt
+docs/DATA_PIPELINE.md
+docs/HANDOFF.md
+docs/NEXT_SESSION.md
+docs/PROJECT_AUDIT.md
+docs/TECHNICAL_ROADMAP.md
+docs/VERIFICATION.md
+docs/verification-phase12-2026-10-24.json
+frontend/src/App.jsx
+frontend/src/App.test.jsx
+frontend/src/api.js
+frontend/src/components/Catalogue.jsx
+frontend/src/components/ConjunctionWorkbench.jsx
+frontend/src/components/ObjectInspector.jsx
+frontend/src/index.css
+
+Historical cumulative inventory (preserved)
 .github/workflows/ci.yml
 .gitignore
 README.md

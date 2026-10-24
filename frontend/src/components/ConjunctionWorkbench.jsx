@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Play, Shield } from 'lucide-react';
-import { request, number, utc, band } from '../api';
+import { request, number, utc, band, elementParams } from '../api';
 import ManeuverPanel from './ManeuverPanel';
 
 function SeparationPlot({ result }) {
@@ -30,7 +30,7 @@ export default function ConjunctionWorkbench({ objects, selected, comparison, on
   const candidates = useMemo(() => {
     if (!result?.closest_event || !a || result.risk_level === 'SAFE' || result.risk_level === 'UNKNOWN') return null;
     const e = result.closest_event;
-    return { line1: a.line1, line2: a.line2, threat_distance_km: result.min_distance_km, event_time: e.time,
+    return { ...elementParams(a), threat_distance_km: result.min_distance_km, event_time: e.time,
       ...Object.fromEntries(['x', 'y', 'z'].map(k => [`threat_direction_${k}`, e.position_b[k] - e.position_a[k]])) };
   }, [result, a]);
   async function run(mode) {
@@ -39,7 +39,7 @@ export default function ConjunctionWorkbench({ objects, selected, comparison, on
     try {
       if (mode === 'pair') {
         onCompare(b);
-        const data = await request('/collision-check', { line1_a: a.line1, line2_a: a.line2, line1_b: b.line1, line2_b: b.line2, hours, step_minutes: 1 }, c.signal);
+        const data = await request('/collision-check', { ...elementParams(a, '_a'), ...elementParams(b, '_b'), hours, step_minutes: 1 }, c.signal);
         if (!c.signal.aborted) setResult(data);
       } else {
         const data = await request('/asset-scan', { catnr: a.norad_id, hours }, c.signal);
