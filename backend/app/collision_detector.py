@@ -5,7 +5,6 @@ Provides pairwise closest-approach analysis and fleet-wide collision scanning.
 """
 
 import numpy as np
-from typing import Optional
 
 
 # Risk-level distance thresholds (km)
@@ -17,6 +16,7 @@ def calculate_closest_approach(
     positions_a: list[dict],
     positions_b: list[dict],
     threshold_km: float = THRESHOLD_CRITICAL_KM,
+    include_paths: bool = True,
 ) -> dict:
     """
     Find the minimum separation distance between two propagated position series.
@@ -46,48 +46,44 @@ def calculate_closest_approach(
     if len(positions_a) != len(positions_b) or any(a["time"] != b["time"] for a, b in zip(positions_a, positions_b)):
         raise ValueError("State series must have identical timestamps; incomplete grids cannot be screened.")
 
-    min_distance = float("inf")
-    closest_event: Optional[dict] = None
-
-    for pa, pb in zip(positions_a, positions_b):
-        pos_a = np.array(
-            [pa["position_km"]["x"], pa["position_km"]["y"], pa["position_km"]["z"]],
-            dtype=float,
-        )
-        pos_b = np.array(
-            [pb["position_km"]["x"], pb["position_km"]["y"], pb["position_km"]["z"]],
-            dtype=float,
-        )
-        if not np.all(np.isfinite(pos_a)) or not np.all(np.isfinite(pos_b)):
+    if not np.isfinite(threshold_km) or threshold_km < 0:
+        raise ValueError("Threshold must be finite and nonnegative.")
+    # Named axes are deliberate: dictionary insertion order is not a frame.
+    def vectors(states, field):
+        values = np.array([[p[field][k] for k in 'xyz'] for p in states], dtype=float)
+        if not np.all(np.isfinite(values)):
             raise ValueError("Non-finite state cannot be screened.")
-        distance = float(np.linalg.norm(pos_a - pos_b))
+        return values
 
-        if distance < min_distance:
-            min_distance = distance
-            closest_event = {
-                "time": pa["time"],
-                "distance_km": round(distance, 6),
-                "relative_velocity_km_s": float(np.linalg.norm(
-                    np.array(list(pa["velocity_km_s"].values())) - np.array(list(pb["velocity_km_s"].values())))),
-                "position_a": pa["position_km"],
-                "position_b": pb["position_km"],
-                "location_a": {"lat": pa["lat"], "lon": pa["lon"], "alt_km": pa["alt_km"]},
-                "location_b": {"lat": pb["lat"], "lon": pb["lon"], "alt_km": pb["alt_km"]},
-            }
-
-    risk_level = _classify_risk(min_distance, threshold_km)
-
-    return {
-        "min_distance_km": round(min_distance, 6) if min_distance != float("inf") else None,
-        "risk_level": risk_level,
-        "closest_event": closest_event,
+    delta = vectors(positions_a, 'position_km') - vectors(positions_b, 'position_km')
+    relative_velocity = vectors(positions_a, 'velocity_km_s') - vectors(positions_b, 'velocity_km_s')
+    distances = np.linalg.norm(delta, axis=1)
+    if not np.all(np.isfinite(distances)):
+        raise ValueError("State separation overflowed the supported numeric range.")
+    index = int(np.argmin(distances))  # preserves first sample on ties
+    minimum = float(distances[index])
+    pa, pb = positions_a[index], positions_b[index]
+    result = {
+        "min_distance_km": round(minimum, 6),
+        "risk_level": _classify_risk(minimum, threshold_km),
+        "closest_event": {
+            "time": pa["time"], "distance_km": round(minimum, 6),
+            "relative_velocity_km_s": float(np.linalg.norm(relative_velocity[index])),
+            "position_a": pa["position_km"], "position_b": pb["position_km"],
+            "location_a": {k: pa[k] for k in ('lat', 'lon', 'alt_km')},
+            "location_b": {k: pb[k] for k in ('lat', 'lon', 'alt_km')},
+        },
         "method": "sampled separation; not continuous TCA",
         "probability_of_collision": None,
         "sample_count": len(positions_a),
         "frame": "TEME",
-        "path_a": positions_a,
-        "path_b": positions_b,
     }
+    if include_paths:
+        result.update(path_a=positions_a, path_b=positions_b)
+    else:
+        # Full precision separation series keeps the plot without duplicated states.
+        result['separation_km'] = distances.tolist()
+    return result
 
 
 def scan_for_collisions(
@@ -134,7 +130,7 @@ def scan_for_collisions(
                 )
 
     # Sort by distance ascending (most critical first)
-    risks.sort(key=lambda r: r["min_distance_km"] or float("inf"))
+    risks.sort(key=lambda r: r["min_distance_km"] if r["min_distance_km"] is not None else float("inf"))
     return risks
 
 

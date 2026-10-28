@@ -9,8 +9,8 @@ jest.mock('./components/Globe', () => ({ __esModule: true, default: ({ children 
 jest.mock('./components/SatelliteLayer', () => () => null);
 jest.mock('./components/SatelliteOrbit', () => () => null);
 const objects = [
-  { name: 'ALPHA', norad_id: 1, line1: 'line1-a', line2: 'line2-a', alt_km: 400, inclination_deg: 51.6, eccentricity: 0.001, period_minutes: 92, freshness: 'stale', epoch_age_days: 30, epoch: '2026-09-01T00:00:00Z', time: '2026-10-01T00:00:00Z' },
-  { name: 'BETA', norad_id: 2, line1: 'line1-b', line2: 'line2-b', alt_km: 600, inclination_deg: 40, freshness: 'recent', epoch_age_days: 1, epoch: '2026-09-30T00:00:00Z', time: '2026-10-01T00:00:00Z' }
+  { name: 'ALPHA', norad_id: 1, lat: 0, lon: 0, line1: 'line1-a', line2: 'line2-a', alt_km: 400, inclination_deg: 51.6, eccentricity: 0.001, period_minutes: 92, freshness: 'stale', epoch_age_days: 30, epoch: '2026-09-01T00:00:00Z', time: '2026-10-01T00:00:00Z' },
+  { name: 'BETA', norad_id: 2, lat: 0, lon: 60, line1: 'line1-b', line2: 'line2-b', alt_km: 600, inclination_deg: 40, freshness: 'recent', epoch_age_days: 1, epoch: '2026-09-30T00:00:00Z', time: '2026-10-01T00:00:00Z' }
 ];
 const states = [0, 1].map(i => ({ time: `2026-10-01T00:0${i * 2}:00Z`, lat: 0, lon: i, alt_km: 400, position_km: { x: 7000, y: i, z: 0 }, velocity_km_s: { x: 0, y: 7, z: 0 } }));
 let container, root;
@@ -63,7 +63,7 @@ test('catalogue errors are actionable and retry recovers', async () => {
 test('pair workflow uses explicit inputs and does not invent probability', async () => {
   const original = fetch;
   global.fetch = jest.fn(async url => {
-    if (url.includes('/collision-check?')) return { ok: true, json: async () => ({ risk_level: 'SAFE', min_distance_km: 100, closest_event: { time: states[0].time, relative_velocity_km_s: 2 }, hours: 1, step_minutes: 1, sample_count: 61, start_time: states[0].time, elements_a: objects[0], elements_b: objects[1] }) };
+    if (url.includes('/collision-check?')) return { ok: true, json: async () => ({ risk_level: 'SAFE', min_distance_km: 100, separation_km: [120,100,140], closest_event: { time: states[0].time, relative_velocity_km_s: 2 }, hours: 1, step_minutes: 1, sample_count: 61, start_time: states[0].time, elements_a: objects[0], elements_b: objects[1] }) };
     return original(url);
   });
   await render(<App />); await click('Conjunction analysis');
@@ -73,6 +73,8 @@ test('pair workflow uses explicit inputs and does not invent probability', async
   expect(container.textContent).toContain('100.000'); expect(container.textContent).toContain('Above threshold');
   expect(container.textContent).toContain('Collision probability'); expect(container.textContent).toContain('Unavailable');
   const url = fetch.mock.calls.find(([url]) => url.includes('/collision-check?'))[0]; expect(url).toContain('line1_a=line1-a');
+  expect(url).toContain('include_paths=false');
+  expect(container.querySelector('.separation-plot polyline')).not.toBeNull();
   await change(selects[2], '6'); expect(container.textContent).not.toContain('100.000');
 });
 
@@ -220,4 +222,24 @@ test('unknown and unavailable epochs have distinct accessible descriptions', asy
   expect(container.querySelector('tbody').textContent).toContain('Elements unavailable');
   await change(container.querySelector('[aria-label="Filter by element freshness"]'), 'unknown');
   expect(container.querySelector('tbody').textContent).not.toContain('BETA');
+});
+
+test('globe categories expose filtered selection without changing inspector or duplicating catalogue requests', async () => {
+  await render(<App />);
+  await change(container.querySelector('[aria-label="Globe category"]'), 'debris');
+  expect(container.textContent).toContain('Selected object filtered out of globe.');
+  expect(container.querySelector('.inspector').textContent).toContain('ALPHA');
+  expect(container.querySelector('.inspector').textContent).toContain('Unknown / unclassified');
+  expect(fetch.mock.calls.filter(([url]) => url.includes('/catalog?'))).toHaveLength(1);
+  await change(container.querySelector('[aria-label="Globe category"]'), 'all');
+  expect(container.textContent).toContain('Checking selected marker visibility.');
+});
+
+
+test('analysis primary selection synchronizes the overview inspector', async () => {
+  await render(<App />); await click('Conjunction analysis');
+  await change(container.querySelector('[name="primary-object"]'), '2');
+  await click('Orbital overview');
+  expect(container.querySelector('.inspector').textContent).toContain('BETA');
+  expect(container.querySelector('.selected-row').textContent).toContain('BETA');
 });

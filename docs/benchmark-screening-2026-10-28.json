@@ -1,0 +1,127 @@
+{
+  "before": {
+    "python": "3.11.15",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "scope": "Synthetic aligned TEME kernel only; excludes SGP4, HTTP, GPU and provider work",
+    "repeats": 5,
+    "results": [
+      {
+        "samples": 61,
+        "horizon_hours": 1.0,
+        "step_minutes": 1,
+        "dataset_sha256": "895c6cadda79d1492f653fd9dba8fa553c2f548b7276c6058eb6784e6bdc1b06",
+        "seconds": [
+          0.0010397499427199364,
+          0.0004679170669987798,
+          0.0004634170327335596,
+          0.000457041896879673,
+          0.00045887508895248175
+        ],
+        "median_seconds": 0.0004634170327335596,
+        "python_peak_bytes": 1637,
+        "full_json_bytes": 22490,
+        "illustrative_compact_json_bytes": 890,
+        "min_distance_km": 30.581857
+      },
+      {
+        "samples": 1441,
+        "horizon_hours": 24.0,
+        "step_minutes": 1,
+        "dataset_sha256": "685bfe99ff60d9f4427c4d37849cbeeabc0b3969a7601fb39ed8b32595523ac4",
+        "seconds": [
+          0.010808084043674171,
+          0.010793959023430943,
+          0.011003000079654157,
+          0.010830375016666949,
+          0.010835208930075169
+        ],
+        "median_seconds": 0.010830375016666949,
+        "python_peak_bytes": 1613,
+        "full_json_bytes": 522794,
+        "illustrative_compact_json_bytes": 9172,
+        "min_distance_km": 30.581857
+      },
+      {
+        "samples": 10081,
+        "horizon_hours": 168.0,
+        "step_minutes": 1,
+        "dataset_sha256": "de2e71e7422e2a3460d83d0f459f5687ffc149e4baccf707c3e79f9fa8791a73",
+        "seconds": [
+          0.07797729200683534,
+          0.07827470800839365,
+          0.07828200003132224,
+          0.07712737494148314,
+          0.07709954201709479
+        ],
+        "median_seconds": 0.07797729200683534,
+        "python_peak_bytes": 1613,
+        "full_json_bytes": 3667886,
+        "illustrative_compact_json_bytes": 61013,
+        "min_distance_km": 30.581857
+      }
+    ]
+  },
+  "after": {
+    "python": "3.11.15",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "scope": "Synthetic aligned TEME kernel only; excludes SGP4, HTTP, GPU and provider work",
+    "repeats": 5,
+    "results": [
+      {
+        "samples": 61,
+        "horizon_hours": 1.0,
+        "step_minutes": 1,
+        "dataset_sha256": "895c6cadda79d1492f653fd9dba8fa553c2f548b7276c6058eb6784e6bdc1b06",
+        "seconds": [
+          0.000405792030505836,
+          0.00020487501751631498,
+          0.00018341699615120888,
+          0.00018570793326944113,
+          0.0001752499956637621
+        ],
+        "median_seconds": 0.00018570793326944113,
+        "python_peak_bytes": 9336,
+        "full_json_bytes": 22490,
+        "compact_json_bytes": 1744,
+        "min_distance_km": 30.581857
+      },
+      {
+        "samples": 1441,
+        "horizon_hours": 24.0,
+        "step_minutes": 1,
+        "dataset_sha256": "685bfe99ff60d9f4427c4d37849cbeeabc0b3969a7601fb39ed8b32595523ac4",
+        "seconds": [
+          0.0040162920486181974,
+          0.003606957965530455,
+          0.0035940000088885427,
+          0.0035952080506831408,
+          0.0035919160582125187
+        ],
+        "median_seconds": 0.0035952080506831408,
+        "python_peak_bytes": 289928,
+        "full_json_bytes": 522794,
+        "compact_json_bytes": 29346,
+        "min_distance_km": 30.581857
+      },
+      {
+        "samples": 10081,
+        "horizon_hours": 168.0,
+        "step_minutes": 1,
+        "dataset_sha256": "de2e71e7422e2a3460d83d0f459f5687ffc149e4baccf707c3e79f9fa8791a73",
+        "seconds": [
+          0.027251207968220115,
+          0.03245166607666761,
+          0.02649291604757309,
+          0.02635683410335332,
+          0.031793000060133636
+        ],
+        "median_seconds": 0.027251207968220115,
+        "python_peak_bytes": 2021256,
+        "full_json_bytes": 3667886,
+        "compact_json_bytes": 202147,
+        "min_distance_km": 30.581857
+      }
+    ]
+  },
+  "comparison_note": "Same dataset hashes; before includes an illustrative compact byte estimate only, after measures actual compact kernel output. Five calls per size; Python allocation peak excludes inputs, RSS and all NumPy native allocations."
+}

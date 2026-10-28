@@ -82,6 +82,7 @@ class WorkflowTests(unittest.TestCase):
         result = response.json()
         self.assertEqual(result['attempted_count'], 500)
         self.assertEqual(result['candidate_count'], 501)
+        self.assertEqual(result['skipped_count'], 1)
         self.assertTrue(result['truncated'])
         self.assertGreaterEqual(result['failed_count'], 1)
         self.assertEqual(result['scan_count'] + result['failed_count'], 500)

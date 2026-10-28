@@ -71,3 +71,9 @@ ORBITAL_OFFLINE=0 ORBITAL_CACHE_DIR=/tmp/orbital-omm-verification \
 The opt-in script exits nonzero on fallback/unavailable data and records real retrieval metadata, counts, sample epochs, IDs above 99999, CORS, catalogue and forecast TestClient results. It does not run in offline CI or start/deploy servers. Real provider transport is verified, but TestClient is not socket/browser acceptance. Evidence and limitations are in [VERIFICATION.md](VERIFICATION.md).
 
 Public access does not by itself establish a blanket redistribution licence. Attribute CelesTrak and retain its query/provenance. Consult provider terms before redistributing bulk snapshots. No project licence, texture licence, Space-Track permission or classification metadata licence is inferred here.
+
+## Phase 4–6 additions — 28 October 2026
+
+`/collision-check` accepts `include_paths` (boolean, default true). False returns `separation_km`, one full-precision value for every shared UTC grid sample, instead of `path_a`/`path_b`. Start/window/step, count, closest event and element provenance are unchanged. The workbench uses compact mode; legacy default retains full states. Both modes propagate and screen every sample and have the same sampling limitations. `/asset-scan` adds `skipped_count` for candidates beyond its cap; failed propagations are still separate from successful screens.
+
+The frontend reserves `classification: {category, status: "confirmed", source, norad_id}` for future joined metadata. Recognized categories: `payload`, `debris`, `rocket_body`, `unknown`. Nonempty source and exact numeric catalogue-ID match are required for confirmed styling; unsupported, missing or conflicting metadata stays unknown. No backend classification importer or confirmed metadata is supplied yet. This rendering contract does not establish provenance or redistribution rights. See [PHASE456.md](PHASE456.md) for visual/scientific contracts and measurements.

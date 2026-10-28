@@ -1,0 +1,12 @@
+{
+  "description": "Original analytic linear-motion corpus; km and seconds, not SGP4 accuracy validation. Continuous minima solved by projection onto a finite interval.",
+  "cases": [
+    {"name":"between-sample crossing","r":[-30,0,0],"v":[1,0,0],"duration":60,"step":60,"continuous_time":30,"continuous_distance":0,"sampled_distance":30},
+    {"name":"offset crossing","r":[-30,3,4],"v":[1,0,0],"duration":60,"step":10,"continuous_time":30,"continuous_distance":5,"sampled_distance":5},
+    {"name":"receding endpoint","r":[10,0,0],"v":[1,0,0],"duration":60,"step":10,"continuous_time":0,"continuous_distance":10,"sampled_distance":10},
+    {"name":"approaching endpoint","r":[-100,0,0],"v":[1,0,0],"duration":60,"step":10,"continuous_time":60,"continuous_distance":40,"sampled_distance":40},
+    {"name":"parallel constant separation","r":[0,30,40],"v":[0,0,0],"duration":60,"step":10,"continuous_time":0,"continuous_distance":50,"sampled_distance":50},
+    {"name":"coincident","r":[0,0,0],"v":[0,0,0],"duration":60,"step":10,"continuous_time":0,"continuous_distance":0,"sampled_distance":0},
+    {"name":"subsample near miss","r":[-15,0.001,0],"v":[1,0,0],"duration":60,"step":30,"continuous_time":15,"continuous_distance":0.001,"sampled_distance":15.0000000333333}
+  ]
+}

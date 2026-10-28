@@ -150,6 +150,7 @@ def check_collision(
     step_minutes: int = Query(default=1, ge=1, le=10),
     omm_a: str | None = Query(None, max_length=6000),
     omm_b: str | None = Query(None, max_length=6000),
+    include_paths: bool = Query(True, description="False returns separation series instead of full states"),
 ) -> dict:
     """
     Check collision risk between two satellites over a given time window.
@@ -173,7 +174,7 @@ def check_collision(
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Propagation failed: {exc}") from exc
 
-    result = calculate_closest_approach(pos_a, pos_b)
+    result = calculate_closest_approach(pos_a, pos_b, include_paths=include_paths)
     result.update(start_time=start.isoformat(), hours=hours, step_minutes=step_minutes,
                   elements_a=record_metadata({'omm': json.loads(omm_a)} if omm_a else {'line1': line1_a, 'line2': line2_a}, start),
                   elements_b=record_metadata({'omm': json.loads(omm_b)} if omm_b else {'line1': line1_b, 'line2': line2_b}, start))
@@ -204,8 +205,7 @@ def asset_scan(
         raise HTTPException(status_code=422, detail=f"Failed to propagate primary asset: {exc}")
     risks = []
     failed = 0
-    # For a hackathon demo, we limit the comparison to a reasonable number to avoid long waits,
-    # or we can do a broad-phase filter. Here we'll do the top 500 candidates.
+    # Deterministic cap; no geometric exclusions or continuous-encounter claims.
     for sat in candidates[:500]:
         try:
             sat_pos = propagate_satellite(**record_args(sat), hours_ahead=hours, start_time=start, step_minutes=1)
@@ -229,6 +229,7 @@ def asset_scan(
         "attempted_count": len(candidates[:500]),
         "failed_count": failed,
         "candidate_count": len(candidates),
+        "skipped_count": max(0, len(candidates)-500),
         "truncated": len(candidates)>500,
         "step_minutes": 1,
         "start_time": start.isoformat(),

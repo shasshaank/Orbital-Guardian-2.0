@@ -1,0 +1,89 @@
+{
+  "python": "3.11.15",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "repeats": 1,
+  "scope": "Single offline TestClient observations including propagation and JSON; no network/GPU/RSS claim",
+  "fixture_sha256": "454340125836528c2fc97ee849c88289b2e2592dc5fea796a8ea9c6115b7cf49",
+  "catalogue": [
+    {
+      "limit": 100,
+      "seconds": 1.1265649578999728,
+      "json_bytes": 93799,
+      "returned": 99,
+      "failed": 1,
+      "cache_note": "First request includes offline validation; later requests reuse parsed cache"
+    },
+    {
+      "limit": 1000,
+      "seconds": 0.08958504197653383,
+      "json_bytes": 934652,
+      "returned": 996,
+      "failed": 4,
+      "cache_note": "First request includes offline validation; later requests reuse parsed cache"
+    },
+    {
+      "limit": 6000,
+      "seconds": 0.5005518749821931,
+      "json_bytes": 5493280,
+      "returned": 5866,
+      "failed": 134,
+      "cache_note": "First request includes offline validation; later requests reuse parsed cache"
+    }
+  ],
+  "pairs": [
+    {
+      "hours": 1,
+      "step_minutes": 1,
+      "include_paths": true,
+      "seconds": 0.00565416703466326,
+      "json_bytes": 45807,
+      "sample_count": 61,
+      "minimum_km": 6547.858953
+    },
+    {
+      "hours": 1,
+      "step_minutes": 1,
+      "include_paths": false,
+      "seconds": 0.003524583065882325,
+      "json_bytes": 2272,
+      "sample_count": 61,
+      "minimum_km": 6547.858953
+    },
+    {
+      "hours": 24,
+      "step_minutes": 1,
+      "include_paths": true,
+      "seconds": 0.06565862509887666,
+      "json_bytes": 1051309,
+      "sample_count": 1441,
+      "minimum_km": 120.310734
+    },
+    {
+      "hours": 24,
+      "step_minutes": 1,
+      "include_paths": false,
+      "seconds": 0.03655466705095023,
+      "json_bytes": 27564,
+      "sample_count": 1441,
+      "minimum_km": 120.310734
+    },
+    {
+      "hours": 168,
+      "step_minutes": 1,
+      "include_paths": true,
+      "seconds": 0.47594633291009814,
+      "json_bytes": 7347838,
+      "sample_count": 10081,
+      "minimum_km": 83.210847
+    },
+    {
+      "hours": 168,
+      "step_minutes": 1,
+      "include_paths": false,
+      "seconds": 0.2735249591059983,
+      "json_bytes": 187264,
+      "sample_count": 10081,
+      "minimum_km": 83.210847
+    }
+  ]
+}

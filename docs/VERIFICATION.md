@@ -308,3 +308,31 @@ Read-only GitHub API (sandbox DNS failure then escalated success) confirms [run 
 ### Remaining gates and deployment recommendation
 
 **No-go for deployment.** Phase 1/2 implementation and scoped automated/provider checks are present; updated browser source/OMM UX remains unverified. Prior blank reload/CSP, picking/drag/reset, touch/keyboard/reduced-motion/WebGL-failure and complete in-flight browser checks remain open. Brave untouched. Docker was not retried in this scoped session; previous daemon blocker remains historical, not a new check. Dependency advisories, portable Python locking, root licence and Earth texture provenance remain unresolved. Space-Track is optional and deferred. Phases 3–8 and full definition of done are retained in NEXT_SESSION.md. No servers started or production settings altered. Final source/documentation diff review and `git diff --check` passed; a separate text check also covered all new untracked files. Changes remain uncommitted; reviewed staging/push commands are in HANDOFF.md.
+
+## Owner Phases 4–6 — 28 October 2026
+
+Starting clean HEAD: **17be30c1f795a60d93e29da16a7640b615aa7823**, `orbital-guardian-research-workspace`, tracking divergence 0/0. Tested source is the **uncommitted working tree on that commit**; no new commit or hosted CI result exists for it. No push/merge/deployment or production changes. Read [PHASE456.md](PHASE456.md) for complete scope, methods, evidence and outstanding acceptance; [NEXT_SESSION.md](NEXT_SESSION.md) contains continuation priorities.
+
+Implemented category-safe original instanced glyphs and deterministic detail limits, selected/comparison rings, selected label, synchronized primary selection/inspector, globe category control and explicit availability/filter/visibility status. Globe now generates an original schematic Earth texture, with lighting and approximate-geography labeling; original texture files remain in the repository with unresolved provenance. Phase 3 metadata ingestion remains unimplemented, so current objects stay unknown. Final review fixed instance-matrix rebuilding when geometry changes at a detail threshold and blocks picking through Earth.
+
+Scientific change: named xyz velocity axes and finite-velocity validation, vectorized exhaustive sampled separation, seven-case analytic/dense-reference corpus and seeded 2,000-state scalar comparison. No refinement or new probability/maneuver claims. Compact pair API/plot retains every separation sample and exact closest event; legacy full paths remain default. Scan adds explicit skipped count. Existing full-ID/shared-grid/Vallado/cancellation tests preserved.
+
+Final commands:
+
+```bash
+ORBITAL_OFFLINE=1 backend/.venv/bin/python -m unittest discover -s backend/tests -v
+cd frontend
+npm run lint
+CI=true npm run test:ci
+CI=true GENERATE_SOURCEMAP=false npm run build
+cd ..
+git diff --check
+```
+
+**47 backend tests passed (0.855 s); 21 frontend tests passed (2.028 s); lint/build passed.** Main `main.5d421d25.js`, 270.73 kB gzip; CSS `main.e6a7e3f5.css`, 8.63 kB gzip; globe chunk `138.e0af0241.chunk.js`, 1.75 kB gzip. Existing HTTPX/punycode/Browserslist notices remain; geometry Jest test also exposes Three's installed CommonJS-build deprecation warning. No dependencies changed. Initial new tests had a mistaken fixture constant and Jest-incompatible addon import; both corrected, all final checks pass.
+
+Reproducible offline benchmark scripts: `backend.scripts.benchmark_screening`, `backend.scripts.benchmark_api`, `frontend/scripts/benchmark-glyphs.cjs`. Raw JSON checked in under `docs/benchmark-*-2026-10-28.json`. Same-hash 10,081-state kernel median 77.977 → 27.251 ms (five calls) with increased temporary Python-tracked allocation (~1.6 KB → 2.02 MB, excluding input/RSS). Single 168 h pair TestClient observation: 7,347,838 → 187,264 JSON bytes, 475.95 → 273.52 ms; all 10,081 samples retained and closest events equal. These are scoped kernel/TestClient observations, not production latency/throughput or GPU measurements. CPU glyph preparation measured at 100/1,000/6,000 objects; actual browser acceptance used 996 objects. Maximum 500-candidate/168 h scan was not repeated. No provider download or cache forcing.
+
+Localhost offline backend and static production frontend started after checking listeners; sandbox denied binding (`operation not permitted`), escalated localhost-only starts succeeded. Native Google Chrome verified loaded offline source/freshness status, shaded Earth/markers/path, ISS label and inspector, category-filtered selection without inspector loss, camera controls, mobile 390×844 and tablet 820×1180 layout, and mobile timeline Increment (+2 min). Final bundle reload returned the expected explicit `Selected object is in view` status and 996 enabled markers / 15,830 source objects. Chrome native AX actions/screenshots occasionally did not reflect expected camera or viewport changes; these interactions do not constitute full drag/pick/LOD/touch acceptance. No scripted browser mutation or Brave interaction. Screenshots conversation-only. Local verification servers stopped at end.
+
+**Deployment no-go.** Remaining: Phase 3 metadata/provenance; complete browser interaction/accessibility/slow-request/WebGL/CSP/blank-reload matrix; sustained real-browser/GPU profiling with thousands of objects; independent orbital encounter corpus before continuous refinement; exact pushed-SHA Actions, security/advisories/licensing and Docker/config gates. No blanket completion/release acceptance is claimed. Owner commits/pushes the reviewed feature branch using commands in NEXT_SESSION.md and checks CI for that exact new SHA.

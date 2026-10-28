@@ -19,3 +19,9 @@
 .source-degraded { border-left: 3px solid #d3b47f; }
 .age.unknown, .age.unavailable { color: #a9bac8; font-style: italic; }
 .inspector pre { max-height: 20rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Category symbols and controls retain readable flow at all viewport sizes. */
+.view-legend{position:static;flex-wrap:wrap;padding:12px 20px;gap:9px 16px;border-top:1px solid var(--line);font-size:10px;line-height:1.5}
+.view-legend b{font-size:16px}.view-controls{flex-wrap:wrap}.view-controls select{max-width:160px;padding:5px;font-size:11px}
+.globe-status{padding:10px 20px;font-size:10px;line-height:1.6;color:var(--muted);background:#0b141e}
+.globe-label{display:block;white-space:nowrap;padding:4px 7px;background:#0b1727e8;color:#fff0c4;border:1px solid #65788a;border-radius:3px;font:11px var(--mono)}

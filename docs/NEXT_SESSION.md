@@ -1,20 +1,30 @@
-# Orbital Guardian 2.0 — continuation after Phases 1 and 2
+# Orbital Guardian 2.0 — continuation after Phases 4–6 implementation
 
 Continue `shasshaank/Orbital-Guardian-2.0` on `orbital-guardian-research-workspace`. Improve the existing React/Three.js/R3F + FastAPI/Python 3.11/SGP4 implementation; do not rewrite it. Preserve all uncommitted work. No deployment, production settings/data changes, Render changes, merge into main, invented licences or blind dependency upgrades. **Leave Brave alone unless explicitly authorized.**
 
-## Read first and current state
+## Read first and current state — 28 October 2026
 
-1. Inspect git status, full HEAD, tracking status, staged/unstaged diffs and untracked files before editing. Last starting HEAD was `e5ccb0310fb6d28fe5856ded10f607462ba59d66`; today's changes remain uncommitted. Owner will commit/push. Do not assume a prior SHA still matches.
-2. Read only `## Owner Phases 1 and 2 — 24 October 2026` in VERIFICATION.md and DATA_PIPELINE.md. Read relevant source/test files for the selected next task. Older ledger sections only resolve concrete gaps. Do not repeat completed checks merely to reconstruct context.
-3. Owner scoped 24 October to **Phases 1 and 2 only**. Those implementation changes are present: native CelesTrak OMM-compatible JSON; native SGP4 with full 6-/9-digit IDs; legacy TLE API input retained; bounded verified HTTPS; 2-hour minimum on-demand refresh; per-provider/group atomic cache, thread/filesystem refresh locking, persisted cooldown/blocked errors; deterministic deduplication; explicit source/freshness UI and timestamps; catalogue API pagination.
-4. Real active-group HTTPS retrieval succeeded at `2026-10-24T18:12:09.242229+00:00`: 16,792 records, zero rejected/duplicates, 880 IDs above 99,999, one validation propagation failure. API returned 1,000 predicted objects, 5 with stale/future epochs; final cached native forecast for real ID 100000 returned 61 samples. These are provider + TestClient checks, not socket/browser acceptance. Other query groups were investigated but not fetched; no all-debris coverage claim.
-5. Local validation: **43 backend tests, 17 frontend tests, lint and production build pass**; build `main.5aea5801.js`, CSS `main.1a319105.css`. Known HTTPX/punycode/Browserslist notices remain. CI [40111775775](https://github.com/shasshaank/Orbital-Guardian-2.0/actions/runs/40111775775) succeeded for starting full SHA above, not uncommitted code. Check exact new SHA after owner pushes; do not trigger/push automatically.
-6. Optional Space-Track remains unimplemented. Classification, glyph redesign, new scientific algorithms and infrastructure were not added. Existing cancellation fixes from the previous session are preserved in HEAD.
-7. No local servers were started this session. Live cache is isolated at `/tmp/orbital-omm-verification`, not a tracked fixture. Do not clear it to force another provider request. Runtime cache locks require Linux/macOS and a shared writable directory; separate replicas are not coordinated. Config/API details and reproducible commands: DATA_PIPELINE.md. Raw observations: verification-phase12-2026-10-24.json.
+1. Inspect git status, full HEAD, tracking, staged/unstaged diffs and untracked files before editing. This session started clean at **17be30c1f795a60d93e29da16a7640b615aa7823**, branch `orbital-guardian-research-workspace`. Owner will commit/push; today's changes remain uncommitted. Do not assume this SHA still matches next session.
+2. Read [PHASE456.md](PHASE456.md) and `## Owner Phases 4–6 — 28 October 2026` in VERIFICATION.md first. DATA_PIPELINE.md documents native OMM, cache and compact pair-response contracts. Earlier verification sections only resolve concrete gaps; do not reconstruct completed work by repeating expensive checks.
+3. Phases 1/2 remain implemented: native OMM/full IDs, verified bounded HTTPS, rate-limited refresh/atomic cache, source/freshness UI and API pagination. No provider request this session; retained real-source evidence remains dated 24 October. Do not describe bundled offline data as current.
+4. Phase 4 implementation: original instanced category glyphs, shared category semantics, category filter, selected/comparison rings, selected label, explicit availability/filter/visibility status, responsive flowing legend and procedural schematic Earth with shading. Far/dense batches simplify. Current data still renders **unknown**: Phase 3 metadata ingestion has not been implemented. No classification inferred from names or OMM security marking. Original Earth textures remain unused by the globe but unlicensed/unresolved in the repository.
+5. Phase 5: named-axis velocity bug fixed; finite-state validation strengthened; seven-case analytic/dense encounter corpus and 2,000-state independent scalar distance comparison. Existing Vallado/shared-grid/scientific limits retained. No continuous refinement, probability or validated maneuvers added. Real-orbit independent encounter corpus remains future work.
+6. Phase 6: vectorized exhaustive sampled separation; optional `include_paths=false` compact pair API used by workbench; explicit scan skipped count. Same synthetic 10,081-state kernel median **77.98 → 27.25 ms** (5 calls, increased temporary memory). Single offline 168 h pair: **7,347,838 → 187,264 B**, **475.95 → 273.52 ms**, closest event unchanged. CPU glyph preparation measured at 100/1,000/6,000 objects; no thousands-object GPU claim. Full raw evidence/reproduction/limits in PHASE456.md. Do not repeat maximum-horizon 500-candidate scan without a concrete reason.
+7. Final automated validation: **47 backend tests, 21 frontend tests, lint/build pass**. Native Chrome checks include desktop globe, label/inspector, category filter, camera controls, mobile 390×844 and tablet 820×1180 layout and mobile two-minute timeline advancement. Full browser/release acceptance remains open; see exact checklist below. Brave untouched. Local servers started only for offline acceptance and stopped at session end.
+8. No hosted CI result verifies today's dirty tree. Owner should commit/push this feature branch, then inspect Actions for the **exact resulting SHA**. No push, merge, deployment, production settings changes, infrastructure or dependency upgrades performed. Root licence/original texture provenance, security advisories and Docker gates remain unresolved. **Not release-ready.**
+
+## Next session priorities
+
+- Inspect owner changes and pushed-SHA CI first. Preserve all existing work.
+- Implement Phase 3 metadata investigation/join/provenance before claiming real payload/debris/rocket categories. The frontend rendering contract in PHASE456.md is ready but does not authorize a data source or its redistribution.
+- Finish Phase 4/7 browser matrix: drag versus click/picking and occlusion, all layer/camera controls, catalogue/inspector sync and full IDs, desktop/tablet/mobile/touch, keyboard/focus/reduced motion, forced WebGL failure and slow forecast/pair/maneuver completion/cancellation. Verify actual source/OMM UX; don't treat Jest or TestClient as browser evidence.
+- Profile real browser/GPU and picking at thousands of objects. CPU-only geometry evidence already exists; measure before further renderer changes. Keep instancing, deterministic simplification, loaded-subset labels, exhaustive sample recall and bounded scans.
+- Build a representative independent orbital encounter corpus before continuous/adaptive TCA refinement. Analytic linear-motion cases already demonstrate sampled misses; do not invent collision probabilities or maneuver validation.
+- Complete Phase 7 security/licensing/Docker/configuration gates and Phase 8 final audit. Do not deploy or merge to main without explicit permission.
 
 ## Remaining owner prompt — preserve and implement incrementally
 
-The following retains the remaining requested scope. A new session should select a small reviewable increment, verify it, and update this handoff. Existing release gates remain requirements; new data does not substitute for acceptance. Historical roadmap Stage 3/4 numbering differs from these owner phases.
+The following retains the remaining requested scope. Phases 4–6 implementation and scoped evidence are recorded above; remaining acceptance requirements below are retained. Continue with a reviewable increment and update this handoff. Existing release gates remain requirements; new data does not substitute for acceptance. Historical roadmap Stage 3/4 numbering differs from these owner phases.
 
 ### Phase 3 — defensible satellite/debris classification
 
@@ -22,7 +32,7 @@ Investigate public catalogue metadata and its licensing/usage conditions. Join o
 
 Represent conflicting metadata or apply a documented precedence policy. Test missing classifications, mismatched IDs, conflicting sources, six-/nine-digit IDs and unknown types. No classification is currently claimed by the application. Do not infer redistribution permission from public availability.
 
-### Phase 4 — LeoLabs-inspired globe, retaining the functional R3F scene
+### Phase 4 — globe implementation present; complete acceptance
 
 Use restrained navy space, realistic Earth shading, readable paths, controlled glow, coherent legend and clear selection. Do not copy proprietary LeoLabs artwork. Use documented licensed, self-created or procedural assets. Existing Earth texture provenance is unresolved; do not invent a licence.
 
@@ -36,7 +46,7 @@ Use restrained navy space, realistic Earth shading, readable paths, controlled g
 - Verify globe/catalogue selection, search/filtering, inspector sync, category and marker/path toggles, camera/reset, labels, forecast/timeline, desktop/tablet/mobile, keyboard/focus/names and reduced motion. Legend, catalogue and inspector must share semantics.
 - Distinguish filtered-out, unavailable and out-of-view objects. Do not imply the loaded 1,000-object UI subset is the whole catalogue.
 
-### Phase 5 — remaining scientific correctness
+### Phase 5 — sampled-kernel fixes/corpus present; preserve scientific limits
 
 Inspect actual completed work before changing it. Shared UTC grids, explicit state failures, approximate GMST/WGS84 conversion, validation, honest sampled-screening accounting, Vallado reference tests and candidate-only maneuvers already exist. Preserve them and their limitations.
 
@@ -44,7 +54,7 @@ Prioritize shared grids, missing data, coordinate/time approximations, input val
 
 No collision probability without covariance/uncertainty, object-size assumptions, encounter geometry, validated method and references. Maneuver candidates are unvalidated heuristics: no invented confidence, fuel savings, post-burn miss distance or operational guarantees. A physical what-if requires burn epoch, impulse/force model, spacecraft constraints, propagation and re-screening. No radar custody, orbit determination or LeoLabs-equivalent coverage claims.
 
-### Phase 6 — measured performance/scalability
+### Phase 6 — measured optimizations present; extend browser/GPU evidence
 
 Use retained evidence: 168-hour pair has 10,081 samples/path and a 7.35 MB response; maximum-horizon 500-candidate serial scan took about 99 s. Do not repeat that expensive scan without a concrete reason. The new warm-cache microbenchmark measures only parsed cache reads, not API/scan/render performance.
 
@@ -92,3 +102,21 @@ git diff --check
 ```
 
 Real-provider and warm-cache commands are in DATA_PIPELINE.md. No TypeScript check exists. Recheck localhost listeners before starting servers; bind localhost only. Current checkpoint is **not release-ready**.
+
+## Owner Git commands for this checkpoint
+
+Run from the repository root after reviewing the changes. Current branch is already `orbital-guardian-research-workspace`; do not merge into main. All changes in this session are within the paths staged below. Check the status for any subsequent owner edits before staging.
+
+```bash
+git status --short
+git branch --show-current
+git diff --check
+git add README.md backend frontend docs
+git diff --cached --stat
+git diff --cached --check
+git commit -m "Improve globe glyphs, sampled screening and performance"
+git push origin orbital-guardian-research-workspace
+git rev-parse HEAD
+```
+
+After pushing, inspect GitHub Actions for the printed full SHA. The local working-tree checks do not establish hosted CI success. No force push, deployment or merge is needed.
