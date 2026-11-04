@@ -1,4 +1,42 @@
-# Orbital Guardian 2.0 — continuation after Phases 4–6 implementation
+# Orbital Guardian 2.0 — continuation after local Phase 3 import increment
+
+## Current resumption checkpoint — 5 November 2026
+
+This section supersedes historical state and priority claims below. Start here, then read [CLASSIFICATION.md](CLASSIFICATION.md) and the 5 November section in [VERIFICATION.md](VERIFICATION.md).
+
+- Clean starting HEAD was **07b58a0d8e8f34462949fe59eb9afa3a02f70b81**, branch `orbital-guardian-research-workspace`, matching its local origin tracking ref. Owner had committed the previous Phases 4–6 checkpoint. GitHub API confirms [Actions success for that exact SHA](https://github.com/shasshaank/Orbital-Guardian-2.0/actions/runs/40670041949). These new changes are uncommitted; that hosted result does not verify them. Inspect status/diffs before editing; preserve owner changes.
+- **First missing implementation was Phase 3, not Phase 7.** A reviewable increment is now implemented: opt-in `ORBITAL_METADATA_FILE` local SATCAT JSON import, bounded whole-file validation, provider-specific vocabularies, full-ID joins, preserved original type/source/retrieval/hash evidence, conservative conflict policy, API metadata and inspector evidence. Default remains unknown without a file. Both `/catalog` and `/satellites` use the join; embedded orbital-record classifications are overridden.
+- **Phase 3 remains partial:** no automatic metadata retrieval, metadata refresh policy, real downloaded metadata or browser category acceptance. CelesTrak usage documentation does not establish this application's redistribution basis. Space-Track public documentation describes citation-conditioned basic SSA redistribution; no authenticated integration/account agreement was exercised. Do not claim real classification coverage or operational payload status. Read the exact source research and import schema in CLASSIFICATION.md before extending it.
+- Final automated checks: **54 backend tests, 23 frontend tests, lint/build pass**. Synthetic metadata only; no provider-data request, browser session, GPU benchmark or server start this session. Brave untouched. Existing 24 October orbital-provider evidence and 28 October performance evidence remain historical and scoped.
+- Phase 7 gates refreshed: `npm audit --json` reports **63 affected package entries: 3 critical, 30 high, 13 moderate, 17 low**. No remediation or reachability clearance; dependencies unchanged. Docker checked once: daemon unreachable at `unix:///Users/shashaankjain/.docker/run/docker.sock`; no build/start attempted. Exact evidence is in [verification-2026-11-05.json](verification-2026-11-05.json).
+- Root licence, old texture provenance, Python portable/hash locking, backend advisory review and full browser/GPU acceptance still open. No push/merge/deployment, production/Render changes or dependency upgrades. **Deployment no-go.**
+
+### Current next steps
+
+1. Review owner changes and commit state. Do not redo completed Phases 4–6 or repeat the expensive 500-candidate maximum-horizon scan.
+2. Continue Phase 3 with a justified acquisition/redistribution basis, then a separately cached/bounded opt-in metadata retriever and real join verification. Local import is available now for independently obtained metadata; real imports must stay outside the repo/build context. Preserve provenance, unknowns and conflicts. Do not add Space-Track credentials to code, logs or responses.
+3. Finish the Phase 4/7 actual browser matrix below, including the new classification evidence/unknown/error states. Automated rendering tests are not browser acceptance. Measure browser/GPU/picking at thousands of markers before further optimization.
+4. Continue reviewed Phase 7 dependency remediation/portable locking, security/licensing/configuration gates. Perform Docker offline build/run gates when the daemon is available. Complete Phase 8 documentation and inspect CI for the exact eventual pushed SHA.
+
+### Owner Git commands for this increment
+
+Review first; no automatic push/merge/deployment. Commands include only this increment's changed areas; check for subsequent owner edits before staging.
+
+```bash
+git status --short
+git branch --show-current
+git diff --check
+git add README.md backend/.env.example backend/app/main.py backend/app/object_metadata.py backend/tests/test_object_metadata.py frontend/src/App.jsx frontend/src/components/ObjectInspector.jsx frontend/src/components/ClassificationEvidence.jsx frontend/src/components/ClassificationEvidence.test.jsx frontend/src/objectSemantics.js frontend/src/objectSemantics.test.js docs/CLASSIFICATION.md docs/DATA_PIPELINE.md docs/NEXT_SESSION.md docs/VERIFICATION.md docs/verification-2026-11-05.json
+git diff --cached --stat
+git diff --cached --check
+git commit -m "Add provenance-preserving local SATCAT classification joins"
+git push origin orbital-guardian-research-workspace
+git rev-parse HEAD
+```
+
+Inspect Actions for the printed full SHA after the owner pushes. No current hosted result verifies this dirty tree.
+
+## Historical 28 October handoff — retained scope and acceptance requirements
 
 Continue `shasshaank/Orbital-Guardian-2.0` on `orbital-guardian-research-workspace`. Improve the existing React/Three.js/R3F + FastAPI/Python 3.11/SGP4 implementation; do not rewrite it. Preserve all uncommitted work. No deployment, production settings/data changes, Render changes, merge into main, invented licences or blind dependency upgrades. **Leave Brave alone unless explicitly authorized.**
 

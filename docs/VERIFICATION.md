@@ -336,3 +336,32 @@ Reproducible offline benchmark scripts: `backend.scripts.benchmark_screening`, `
 Localhost offline backend and static production frontend started after checking listeners; sandbox denied binding (`operation not permitted`), escalated localhost-only starts succeeded. Native Google Chrome verified loaded offline source/freshness status, shaded Earth/markers/path, ISS label and inspector, category-filtered selection without inspector loss, camera controls, mobile 390×844 and tablet 820×1180 layout, and mobile timeline Increment (+2 min). Final bundle reload returned the expected explicit `Selected object is in view` status and 996 enabled markers / 15,830 source objects. Chrome native AX actions/screenshots occasionally did not reflect expected camera or viewport changes; these interactions do not constitute full drag/pick/LOD/touch acceptance. No scripted browser mutation or Brave interaction. Screenshots conversation-only. Local verification servers stopped at end.
 
 **Deployment no-go.** Remaining: Phase 3 metadata/provenance; complete browser interaction/accessibility/slow-request/WebGL/CSP/blank-reload matrix; sustained real-browser/GPU profiling with thousands of objects; independent orbital encounter corpus before continuous refinement; exact pushed-SHA Actions, security/advisories/licensing and Docker/config gates. No blanket completion/release acceptance is claimed. Owner commits/pushes the reviewed feature branch using commands in NEXT_SESSION.md and checks CI for that exact new SHA.
+
+
+## Local Phase 3 join and Phase 7 gate refresh — 5 November 2026
+
+Clean starting commit **07b58a0d8e8f34462949fe59eb9afa3a02f70b81**, branch `orbital-guardian-research-workspace`, matching the local origin tracking ref. Inspected status, staged/unstaged diffs and untracked files before editing: clean. GitHub API returned one completed successful [Actions run](https://github.com/shasshaank/Orbital-Guardian-2.0/actions/runs/40670041949) with exactly that `head_sha`. That proves the owner's committed Phases 4–6 checkpoint, not these new uncommitted changes. Evidence: [verification-2026-11-05.json](verification-2026-11-05.json).
+
+Resumption audit found Phase 3 still missing before Phase 7 could close. Implemented a bounded optional local SATCAT JSON importer with explicit CelesTrak/Space-Track vocabularies, full numeric-ID join, whole-file rejection, source/time/original-type/hash evidence, conservative conflict handling and unknown fallback. Both catalogue API shapes use it. Added inspector evidence and metadata-unavailable notice; tightened frontend classification ID validation. No network metadata retriever, real metadata dataset or claim of current classification coverage. [CLASSIFICATION.md](CLASSIFICATION.md) records primary-source investigation, access/redistribution findings, schema, policy and remaining work.
+
+Final validation commands:
+
+```bash
+ORBITAL_OFFLINE=1 backend/.venv/bin/python -m unittest discover -s backend/tests -v
+cd frontend
+npm run lint
+CI=true npm run test:ci
+CI=true GENERATE_SOURCEMAP=false npm run build
+cd ..
+git diff --check
+```
+
+**54 backend tests passed (0.839 s), 23 frontend tests passed; lint and production build passed.** New backend cases exercise provider vocabularies, full-ID API joins, same-name mismatch, missing/unknown types, duplicate/cross-source conflicts, original provenance, invalid imports/replacement and legacy list compatibility. Frontend checks cover original evidence, conflict/unavailable wording and invalid ID rejection. An initial test variable name triggered an overly broad Testing Library naming rule; renamed it and reran lint/tests/build successfully. Existing HTTPX, punycode, Three CommonJS and Browserslist notices remain. Final main bundle `main.a2c8e8a3.js` 271.12 kB gzip; CSS `main.e6a7e3f5.css` 8.63 kB gzip. No renderer performance claim or benchmark repetition.
+
+Fresh `npm audit --json` queried the registry after sandbox DNS failure/retry: exit 1 with **63 affected package entries (3 critical, 30 high, 13 moderate, 17 low)**. Critical entries: `proxy-addr`, `shell-quote`, `websocket-driver`. Direct affected entries include `postcss` and `react-scripts`. Selected advisory URLs, ranges, suggested fixes and exact unchanged package-lock SHA-256 are retained in the evidence JSON; full transient report is `/tmp/orbital-npm-audit-2026-11-05.json`. Counts reflect advisory/package chains, not independent exploitable app defects. npm still proposes `react-scripts@0.0.0` for some chains; no automatic fix, upgrade or clearance. Backend dependency advisories and portable/hash locking remain unresolved.
+
+Docker checked once using `docker info --format '{{.ServerVersion}}'`: exit 1, `Cannot connect to the Docker daemon at unix:///Users/shashaankjain/.docker/run/docker.sock. Is the docker daemon running?`. Build/run not attempted. When available, reproduce the offline build/run commands in README and verify `/health`, `/catalog`, runtime/cache-lock permissions, CORS and optional metadata read-only mount. No configuration was changed to bypass this blocker.
+
+Changed application/config paths: `backend/.env.example`, `backend/app/main.py`, new `backend/app/object_metadata.py`, new `backend/tests/test_object_metadata.py`, `frontend/src/App.jsx`, `frontend/src/components/ObjectInspector.jsx`, new `frontend/src/components/ClassificationEvidence.jsx` and test, `frontend/src/objectSemantics.js` and test. Documentation: README, DATA_PIPELINE, NEXT_SESSION, this log, new CLASSIFICATION and evidence JSON.
+
+No orbital-provider/SATCAT data downloaded; documentation browsing only. Synthetic metadata fixtures are not real-source acceptance. No browser/server/GPU session, Brave interaction, new scientific claims, dependencies/lockfile edits, production/Render changes, push, merge or deployment. Final diff/whitespace review passed. **Deployment no-go:** finish real metadata acquisition/redistribution review, browser/GPU acceptance, security/licensing/locking and Docker gates; owner should review/commit/push and verify Actions for the resulting exact SHA. Current reviewed Git commands and resumption priorities are at the top of NEXT_SESSION.md.

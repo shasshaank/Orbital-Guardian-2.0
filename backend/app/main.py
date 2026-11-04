@@ -23,6 +23,7 @@ from .tle_fetcher import fetch_tle_data, fetch_tle_by_catnr, get_catalog
 from .propagator import propagate_satellite, get_current_position
 from .collision_detector import calculate_closest_approach
 from .maneuver_engine import recommend_maneuver
+from .object_metadata import load_metadata, classification_for
 
 
 # --------------------------------------------------------------------------- #
@@ -70,6 +71,7 @@ def catalog_response(group, limit, offset=0):
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     at = datetime.now(timezone.utc)
+    classification_index, classification_metadata = load_metadata()
     objects, failed = [], 0
     for sat in catalog['records'][offset:offset+limit]:
         pos = get_current_position(**record_args(sat), at=at)
@@ -79,8 +81,11 @@ def catalog_response(group, limit, offset=0):
         objects.append({**sat, **record_metadata(sat, at),
                         **pos, 'source': catalog['source'], 'retrieved_at': catalog['retrieved_at'],
                         'snapshot_id': catalog.get('snapshot_id'), 'element_format': 'OMM JSON' if sat.get('omm') else 'TLE'})
+        objects[-1]['classification'] = classification_for(
+            objects[-1]['norad_id'], classification_index, classification_metadata)
     metadata = {k: v for k, v in catalog.items() if k != 'records'}
     metadata.update(catalog_count=len(catalog['records']), returned_count=len(objects),
+                    classification_metadata=classification_metadata,
                     propagation_failed=failed, state_time=at.isoformat(), limit=limit, offset=offset,
                     examined_count=len(catalog['records'][offset:offset+limit]),
                     next_offset=offset+limit if offset+limit < len(catalog['records']) else None,

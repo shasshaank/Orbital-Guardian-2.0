@@ -1,0 +1,294 @@
+{
+  "date": "2026-11-05",
+  "base_commit": "07b58a0d8e8f34462949fe59eb9afa3a02f70b81",
+  "tested_tree": "uncommitted working tree on base_commit; no hosted CI for these edits",
+  "starting_commit_ci": {
+    "head_sha": "07b58a0d8e8f34462949fe59eb9afa3a02f70b81",
+    "conclusion": "success",
+    "url": "https://github.com/shasshaank/Orbital-Guardian-2.0/actions/runs/40670041949"
+  },
+  "npm_audit": {
+    "command": "npm audit --json",
+    "exit_code": 1,
+    "package_lock_sha256": "3e14a06514216f1a3e734a3c8087d4aaf0313a9a055d1014cceddc06c117a98e",
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 17,
+        "moderate": 13,
+        "high": 30,
+        "critical": 3,
+        "total": 63
+      },
+      "dependencies": {
+        "prod": 1362,
+        "dev": 0,
+        "optional": 3,
+        "peer": 2,
+        "peerOptional": 0,
+        "total": 1365
+      }
+    },
+    "selected_direct_or_critical": {
+      "postcss": {
+        "name": "postcss",
+        "severity": "high",
+        "isDirect": true,
+        "via": [
+          {
+            "source": 1109574,
+            "name": "postcss",
+            "dependency": "postcss",
+            "title": "PostCSS line return parsing error",
+            "url": "https://github.com/advisories/GHSA-7fh5-64p2-3v2j",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-74",
+              "CWE-144"
+            ],
+            "cvss": {
+              "score": 5.3,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+            },
+            "range": "<8.4.31"
+          },
+          {
+            "source": 1117015,
+            "name": "postcss",
+            "dependency": "postcss",
+            "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+            "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-79"
+            ],
+            "cvss": {
+              "score": 6.1,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+            },
+            "range": "<8.5.10"
+          },
+          {
+            "source": 1124252,
+            "name": "postcss",
+            "dependency": "postcss",
+            "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+            "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q",
+            "severity": "high",
+            "cwe": [
+              "CWE-22",
+              "CWE-200"
+            ],
+            "cvss": {
+              "score": 7.5,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+            },
+            "range": "<=8.5.11"
+          },
+          {
+            "source": 1130709,
+            "name": "postcss",
+            "dependency": "postcss",
+            "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q \u2014 attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+            "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-22",
+              "CWE-200"
+            ],
+            "cvss": {
+              "score": 0,
+              "vectorString": null
+            },
+            "range": "<=8.5.22"
+          },
+          {
+            "source": 1139510,
+            "name": "postcss",
+            "dependency": "postcss",
+            "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+            "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849",
+            "severity": "high",
+            "cwe": [
+              "CWE-22"
+            ],
+            "cvss": {
+              "score": 7.5,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+            },
+            "range": "<=8.5.17"
+          }
+        ],
+        "effects": [
+          "resolve-url-loader"
+        ],
+        "range": "<=8.5.22",
+        "fixAvailable": {
+          "name": "react-scripts",
+          "version": "0.0.0",
+          "isSemVerMajor": true
+        }
+      },
+      "proxy-addr": {
+        "name": "proxy-addr",
+        "severity": "critical",
+        "isDirect": false,
+        "via": [
+          {
+            "source": 1241210,
+            "name": "proxy-addr",
+            "dependency": "proxy-addr",
+            "title": "proxy-addr vulnerable to IP spoofing via IPv4-mapped IPv6 trust subnet",
+            "url": "https://github.com/advisories/GHSA-jqcg-44mw-7w3h",
+            "severity": "critical",
+            "cwe": [
+              "CWE-290",
+              "CWE-348",
+              "CWE-697"
+            ],
+            "cvss": {
+              "score": 9.1,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N"
+            },
+            "range": ">=1.1.0 <2.0.8"
+          }
+        ],
+        "effects": [],
+        "range": "1.1.0 - 2.0.7",
+        "fixAvailable": true
+      },
+      "react-scripts": {
+        "name": "react-scripts",
+        "severity": "moderate",
+        "isDirect": true,
+        "via": [
+          "@svgr/webpack",
+          "css-minimizer-webpack-plugin",
+          "jest",
+          "jest-watch-typeahead",
+          "react-dev-utils",
+          "resolve-url-loader",
+          "webpack-dev-server",
+          "workbox-webpack-plugin"
+        ],
+        "effects": [],
+        "range": ">=0.1.0",
+        "fixAvailable": {
+          "name": "react-scripts",
+          "version": "0.0.0",
+          "isSemVerMajor": true
+        }
+      },
+      "shell-quote": {
+        "name": "shell-quote",
+        "severity": "critical",
+        "isDirect": false,
+        "via": [
+          {
+            "source": 1120422,
+            "name": "shell-quote",
+            "dependency": "shell-quote",
+            "title": "shell-quote quote() does not escape newlines in object .op values",
+            "url": "https://github.com/advisories/GHSA-w7jw-789q-3m8p",
+            "severity": "critical",
+            "cwe": [
+              "CWE-77",
+              "CWE-78"
+            ],
+            "cvss": {
+              "score": 8.1,
+              "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H"
+            },
+            "range": ">=1.1.0 <=1.8.3"
+          },
+          {
+            "source": 1123944,
+            "name": "shell-quote",
+            "dependency": "shell-quote",
+            "title": "shell-quote: Quadratic-complexity Denial of Service in `parse()` (CWE-407)",
+            "url": "https://github.com/advisories/GHSA-395f-4hp3-45gv",
+            "severity": "high",
+            "cwe": [
+              "CWE-407"
+            ],
+            "cvss": {
+              "score": 7.5,
+              "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+            },
+            "range": "<=1.8.4"
+          }
+        ],
+        "effects": [],
+        "range": "<=1.8.4",
+        "fixAvailable": true
+      },
+      "websocket-driver": {
+        "name": "websocket-driver",
+        "severity": "critical",
+        "isDirect": false,
+        "via": [
+          {
+            "source": 1123482,
+            "name": "websocket-driver",
+            "dependency": "websocket-driver",
+            "title": "websocket-driver: Resource limit bypass via message compression",
+            "url": "https://github.com/advisories/GHSA-mp7j-qc5w-4988",
+            "severity": "moderate",
+            "cwe": [
+              "CWE-770"
+            ],
+            "cvss": {
+              "score": 0,
+              "vectorString": null
+            },
+            "range": "<0.7.5"
+          },
+          {
+            "source": 1123483,
+            "name": "websocket-driver",
+            "dependency": "websocket-driver",
+            "title": "websocket-driver: Message corruption via abuse of protocol length headers",
+            "url": "https://github.com/advisories/GHSA-xv26-6w52-cph6",
+            "severity": "critical",
+            "cwe": [
+              "CWE-130"
+            ],
+            "cvss": {
+              "score": 0,
+              "vectorString": null
+            },
+            "range": "<0.7.5"
+          }
+        ],
+        "effects": [],
+        "range": "<=0.7.4",
+        "fixAvailable": true
+      }
+    },
+    "scope": "registry report for locked dependencies; not a reachability assessment; counts are affected package entries, not independent exploitable defects; no fixes or dependency changes"
+  },
+  "docker": {
+    "command": "docker info --format '{{.ServerVersion}}'",
+    "exit_code": 1,
+    "error": "Cannot connect to the Docker daemon at unix:///Users/shashaankjain/.docker/run/docker.sock. Is the docker daemon running?",
+    "build_run": "not attempted; daemon unavailable"
+  },
+  "provider_requests": "Documentation only; no orbital-element or SATCAT download; synthetic classification fixtures only",
+  "deployment": "no-go",
+  "validation": {
+    "backend": {
+      "command": "ORBITAL_OFFLINE=1 backend/.venv/bin/python -m unittest discover -s backend/tests -v",
+      "passed": 54,
+      "seconds": 0.839
+    },
+    "frontend": {
+      "tests_passed": 23,
+      "lint": "pass",
+      "production_build": "pass",
+      "main_js": "main.a2c8e8a3.js",
+      "gzip_main_kb": 271.12
+    },
+    "browser": "not exercised; automated rendering is not browser acceptance",
+    "benchmarks": "not repeated; no performance claim for this increment"
+  }
+}

@@ -8,7 +8,8 @@ export const CATEGORIES = {
 };
 export function categoryOf(object) {
   const c = object?.classification;
-  return c?.status === 'confirmed' && typeof c.source === 'string' && c.source.trim() &&
+  return Number.isSafeInteger(object?.norad_id) && object.norad_id >= 1 && object.norad_id <= 999999999 &&
+    c?.status === 'confirmed' && typeof c.source === 'string' && c.source.trim() &&
     c.norad_id === object.norad_id && Object.prototype.hasOwnProperty.call(CATEGORIES, c.category)
     ? c.category : 'unknown';
 }

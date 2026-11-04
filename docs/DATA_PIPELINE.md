@@ -1,6 +1,6 @@
 # Public orbital elements: ingestion and freshness
 
-Implemented scope: the owner's Phases 1 and 2, 24 October 2026. Classification, new glyphs and advanced analysis remain separate work.
+Implemented scope: the owner's Phases 1 and 2, 24 October 2026. Later glyphs and compact pair responses are documented below; optional local metadata joins are documented in CLASSIFICATION.md. Advanced analysis remains separate work.
 
 ## Provider and coverage
 
@@ -30,7 +30,7 @@ Native record:
 {"name":"Example","omm":{"NORAD_CAT_ID":100001,"EPOCH":"2026-10-24T00:00:00+00:00","...":"validated GP fields"}}
 ```
 
-The abbreviated example is a schema illustration, not valid propagation input. Native records retain provider fields and precision. CelesTrak's omitted EARTH/TEME/UTC/SGP4 defaults are made explicit; contradictory values, unsupported ephemeris types, malformed dates, non-finite/range-invalid elements and IDs outside 1–999,999,999 are rejected. `CLASSIFICATION_TYPE` is a security marking, **not** payload/debris classification. Object classification remains unknown until Phase 3.
+The abbreviated example is a schema illustration, not valid propagation input. Native records retain provider fields and precision. CelesTrak's omitted EARTH/TEME/UTC/SGP4 defaults are made explicit; contradictory values, unsupported ephemeris types, malformed dates, non-finite/range-invalid elements and IDs outside 1–999,999,999 are rejected. `CLASSIFICATION_TYPE` is a security marking, **not** payload/debris classification. Object classification is supplied only by the separate optional local SATCAT join described in [CLASSIFICATION.md](CLASSIFICATION.md); without metadata it remains unknown.
 
 Bundled/legacy records keep `{name,line1,line2}` with strict TLE format/checksum validation. There is no JSON→TLE conversion. sgp4 2.23 limits its internal Alpha-5 identity tag to 339999; the wrapper preserves the true ID separately and uses an internal nonphysical tag of zero above that limit. No orbital value or public ID is truncated. Tests compare position/velocity with the retained Vallado TLE reference over 24 hours and several 6-/9-digit IDs. This compatibility test does not independently validate every orbit regime.
 
@@ -76,4 +76,4 @@ Public access does not by itself establish a blanket redistribution licence. Att
 
 `/collision-check` accepts `include_paths` (boolean, default true). False returns `separation_km`, one full-precision value for every shared UTC grid sample, instead of `path_a`/`path_b`. Start/window/step, count, closest event and element provenance are unchanged. The workbench uses compact mode; legacy default retains full states. Both modes propagate and screen every sample and have the same sampling limitations. `/asset-scan` adds `skipped_count` for candidates beyond its cap; failed propagations are still separate from successful screens.
 
-The frontend reserves `classification: {category, status: "confirmed", source, norad_id}` for future joined metadata. Recognized categories: `payload`, `debris`, `rocket_body`, `unknown`. Nonempty source and exact numeric catalogue-ID match are required for confirmed styling; unsupported, missing or conflicting metadata stays unknown. No backend classification importer or confirmed metadata is supplied yet. This rendering contract does not establish provenance or redistribution rights. See [PHASE456.md](PHASE456.md) for visual/scientific contracts and measurements.
+The frontend reserves `classification: {category, status: "confirmed", source, norad_id}` for future joined metadata. Recognized categories: `payload`, `debris`, `rocket_body`, `unknown`. Nonempty source and exact numeric catalogue-ID match are required for confirmed styling; unsupported, missing or conflicting metadata stays unknown. As of 5 November, the backend supports an opt-in local SATCAT importer; see [CLASSIFICATION.md](CLASSIFICATION.md). No real metadata is bundled or automatically downloaded. This rendering contract does not establish provenance or redistribution rights. See [PHASE456.md](PHASE456.md) for visual/scientific contracts and measurements.

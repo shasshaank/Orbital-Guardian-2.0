@@ -141,6 +141,12 @@ Native CelesTrak JSON retrieval succeeded for 16,792 active-group records, inclu
 
 ### Globe and sampled-screening checkpoint (28 October 2026)
 
-The R3F globe uses original instanced category symbols, selection/analysis rings, a selected label and category controls. Category styling requires confirmed metadata with a matching catalogue ID and source; current records remain unclassified while metadata ingestion is pending. Earth geography is an original schematic texture; symbol sizes are exaggerated. The inspector, legend and catalogue share category semantics.
+The R3F globe uses original instanced category symbols, selection/analysis rings, a selected label and category controls. Category styling requires confirmed metadata with a matching catalogue ID and source; default records remain unclassified; an optional local SATCAT metadata join is now available (see below). Earth geography is an original schematic texture; symbol sizes are exaggerated. The inspector, legend and catalogue share category semantics.
 
 The conjunction workbench uses a compact pair response that preserves every sampled separation and closest event, reducing duplicated trajectory data. Screening is exhaustive over the requested discrete grid, not a continuous collision assessment. Reproducible correctness/performance evidence, memory tradeoffs and remaining browser/release gates are in [docs/PHASE456.md](docs/PHASE456.md); continue from [docs/NEXT_SESSION.md](docs/NEXT_SESSION.md). This checkpoint is not release-ready.
+
+### Local metadata and release-gate continuation (5 November 2026)
+
+The first missing implementation after Phases 4–6 was Phase 3. The backend now accepts an optional local SATCAT JSON import through `ORBITAL_METADATA_FILE`. It joins only full catalogue IDs, preserves original types/source/timestamps and keeps conflicting or unsupported evidence unknown. The inspector displays classification evidence. No metadata is downloaded automatically or bundled, and payload does not imply operational status. See [source research, schema, conflict policy and remaining work](docs/CLASSIFICATION.md).
+
+54 backend tests, 23 frontend tests, lint and build pass for the uncommitted tree on `07b58a0d8e8f34462949fe59eb9afa3a02f70b81`. Hosted CI passed for that starting commit only. The current npm audit still reports 63 affected package entries (3 critical); Docker's daemon remains unreachable. Real metadata acquisition/redistribution review, browser/GPU acceptance, security, portable Python locking and licensing gates remain open. **Deployment no-go.** See [current handoff](docs/NEXT_SESSION.md) and [evidence](docs/VERIFICATION.md).
