@@ -251,6 +251,7 @@ class ProviderTests(unittest.TestCase):
         with self.assertRaises(provider.ProviderError) as caught:
             provider.fetch_json(f.BASE_URL, 'active')
         self.assertEqual(caught.exception.retry_after, 14400)
+        self.assertTrue(caught.exception.blocked)
         self.assertEqual(get.call_count, 1)
         get.return_value = self.response(b'blocked', 403)
         with self.assertRaises(provider.ProviderError) as caught:

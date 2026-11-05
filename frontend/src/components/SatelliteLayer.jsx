@@ -6,13 +6,13 @@ import { glyphGeometry } from './glyphGeometry';
 import { latLonAltToVec3 } from './SatelliteOrbit';
 import { categoryOf, CATEGORIES, hasState } from '../objectSemantics';
 
-function Batch({ objects, category, selected, comparison, forecast, onSelect }) {
+function Batch({ objects, category, selected, comparison, forecast, onSelect, totalCount }) {
   const mesh = useRef();
   const { invalidate } = useThree();
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const [detailed, setDetailed] = React.useState(true);
   useFrame(({ camera }) => {
-    const next = camera.position.length() < 6 && objects.length <= 2000;
+    const next = camera.position.length() < 6 && totalCount <= 2000;
     if (next !== detailed) setDetailed(next);
   });
   const geometry = useMemo(() => detailed ? glyphGeometry(category) : new THREE.TetrahedronGeometry(0.7), [category, detailed]);
@@ -62,7 +62,7 @@ export default function SatelliteLayer({ satellites, selected, comparison, onSel
   const batches = useMemo(() => Object.keys(CATEGORIES).map(category => ({ category,
     objects: satellites.filter(s => hasState(s) && categoryOf(s) === category)
   })), [satellites]);
-  return <group>{batches.filter(b => b.objects.length).map(b => <Batch key={b.category} {...b} selected={selected} comparison={comparison} forecast={forecast} onSelect={onSelect} />)}
+  return <group>{batches.filter(b => b.objects.length).map(b => <Batch key={b.category} {...b} totalCount={satellites.length} selected={selected} comparison={comparison} forecast={forecast} onSelect={onSelect} />)}
     {hasState(selected) && satellites.some(s => s.norad_id === selected.norad_id) && <Highlight object={selected} forecast={forecast} primary onVisibility={onVisibility} />}
     {hasState(comparison) && satellites.some(s => s.norad_id === comparison.norad_id) && <Highlight object={comparison} />}
   </group>;

@@ -27,10 +27,12 @@ function Camera({ command }) {
 export class ViewBoundary extends React.Component {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  render() { return this.state.failed ? <div className="view-fallback"><h3>3D view unavailable</h3><p>Your browser could not initialize the orbital view. All objects and analyses remain available in the catalogue.</p></div> : this.props.children; }
+  render() { return this.state.failed ? <div className="view-fallback" role="alert"><h3>3D view unavailable</h3><p>Your browser could not initialize the orbital view. All objects and analyses remain available in the catalogue.</p></div> : this.props.children; }
 }
 export default function Globe({ children, grid, command }) {
-  return <ViewBoundary><Canvas frameloop="demand" dpr={[1, 1.5]} camera={{ position: [2.4, 1.1, 3.3], fov: 42 }} gl={{ antialias: true, alpha: true }}>
+  const [contextLost, setContextLost] = React.useState(false);
+  if (contextLost) return <div className="view-fallback" role="alert"><h3>3D view unavailable</h3><p>The graphics context was lost. Catalogue and analyses remain available. Reload to retry the view.</p></div>;
+  return <ViewBoundary><Canvas onCreated={({ gl }) => gl.domElement.addEventListener('webglcontextlost', () => setContextLost(true), { once: true })} frameloop="demand" dpr={[1, 1.5]} camera={{ position: [2.4, 1.1, 3.3], fov: 42 }} gl={{ antialias: true, alpha: true }}>
     <ambientLight intensity={0.5} /><directionalLight position={[4, 3, 5]} intensity={2} color="#e3efff" />
     <Suspense fallback={<mesh><sphereGeometry args={[1, 32, 24]} /><meshBasicMaterial color="#172a3b" /></mesh>}><Earth grid={grid} /></Suspense>
     {children}<Camera command={command} />

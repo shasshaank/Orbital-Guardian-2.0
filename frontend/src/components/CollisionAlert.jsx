@@ -173,7 +173,7 @@ export default function CollisionAlert({
 
       {!result && !loading && (
         <p className="placeholder-text">
-          Press "Check Collision" to run a conjunction analysis between two satellites.
+          Press &quot;Check Collision&quot; to run a conjunction analysis between two satellites.
         </p>
       )}
 

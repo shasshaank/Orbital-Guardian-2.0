@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Orbital Guardian renderer benchmark</title>
+<style>body{font:15px system-ui;background:#080e16;color:#e4ecf2;margin:24px}canvas{max-width:100%;border:1px solid #536575}button{padding:12px}pre{white-space:pre-wrap;overflow-wrap:anywhere}p{max-width:850px}</style>
+</head><body><h1>Renderer benchmark</h1>
+<p>Deterministic synthetic glyphs using the production geometry and density threshold. Measures Three.js submission, GPU elapsed time when the extension is available, and instanced picking. This excludes React, catalogue retrieval, labels and forecast work. Frame intervals include browser scheduling. Keep this tab visible.</p>
+<button id="run">Run 100 / 1,000 / 6,000 object benchmark</button>
+<button id="download" disabled>Download results JSON</button>
+<p id="status" role="status">Ready</p><canvas id="view" width="900" height="550"></canvas>
+<pre id="result" aria-label="Benchmark results"></pre>
+<script type="module" src="./browser.js"></script></body></html>

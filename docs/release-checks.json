@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-05",
+  "base_commit": "b2caa837d02d80105e11ec27bc532fd463703c3a",
+  "tested_tree": "uncommitted working tree; starting-commit CI does not verify these edits",
+  "backend_tests": 59,
+  "frontend_tests": 27,
+  "lint": "passed",
+  "build": "passed; main chunk warning >500kB",
+  "npm_audit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "python_audit_vulnerable_packages": 0,
+  "locks_sha256": {
+    "backend/requirements.txt": "5bdf58dfb7192f67c895e2de2aa6fd1ca984841b04e682d9686078083b78a6c2",
+    "backend/requirements-dev.txt": "d26775ef004f7332b9b451e789ef8dab26ed696587536671fe9f5bd7d58f5556",
+    "frontend/package-lock.json": "17f77cfc08410b337c01b3296da5b8170a8f27855139447dfdd34cc5a8630bc7"
+  },
+  "private_satcat": {
+    "retrieved_at": "2026-11-05T12:47:47.253657+00:00",
+    "snapshot_id": "e8970aa96386758a1661be3c60f6d6ebfa130dd00de2fab9d9bc5fd0186090b2",
+    "record_count": 19,
+    "confirmed_join_count": 6,
+    "orbital_source": "old bundled offline active-group fixture; not new GP retrieval",
+    "iss_category": "payload",
+    "raw_snapshot_bundled": false,
+    "original_byte_sha256": "3f6998544486b45e48d6c98bb2fb33eed476bbd5aa98d50c7bd158c127045c29"
+  },
+  "linux_wheel_hash_download": "passed; not Linux execution",
+  "docker": "daemon unreachable at unix:///Users/shashaankjain/.docker/run/docker.sock; build/run not attempted",
+  "browser": {
+    "native_chrome": "5,858 loaded markers; real classification evidence, category and layer filters, keyboard forecast",
+    "full_acceptance": "incomplete",
+    "benchmark": "Synthetic run completed while hidden/occluded, invalid for timing claims; foreground retry failed with native control -10005 noWindowsAvailable"
+  },
+  "release": "no-go; Docker, full browser acceptance, redistribution review, exact pushed-SHA CI remain",
+  "deployment_performed": false,
+  "commands": {
+    "backend": "ORBITAL_OFFLINE=1 /tmp/orbital-locked-validation/bin/python -m unittest discover -s backend/tests -v",
+    "backend_seconds": 0.899,
+    "frontend": [
+      "npm ci --offline --no-audit --cache /tmp/orbital-npm-cache",
+      "npm run lint",
+      "npm run test:ci",
+      "npm run benchmark:build",
+      "npm run build"
+    ],
+    "python_audit": "pip-audit -r backend/requirements-dev.txt --require-hashes --format json",
+    "npm_audit": "npm audit --json"
+  },
+  "frontend_build": {
+    "main_js": "index-CtClTtHN.js",
+    "main_gzip_kb": 278.39,
+    "css": "index-Cl0zyq9R.css",
+    "css_gzip_kb": 8.34
+  }
+}

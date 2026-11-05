@@ -3,11 +3,13 @@ import { createRoot } from 'react-dom/client';
 import { Simulate } from 'react-dom/test-utils';
 import App from './App';
 import Catalogue from './components/Catalogue';
+import ManeuverPanel from './components/ManeuverPanel';
+import Workbench from './components/ConjunctionWorkbench';
 import { filterObjects, number } from './api';
 
-jest.mock('./components/Globe', () => ({ __esModule: true, default: ({ children }) => <div data-testid="globe">{children}</div> }));
-jest.mock('./components/SatelliteLayer', () => () => null);
-jest.mock('./components/SatelliteOrbit', () => () => null);
+vi.mock('./components/Globe', () => ({ __esModule: true, default: ({ children }) => <div data-testid="globe">{children}</div> }));
+vi.mock('./components/SatelliteLayer', () => ({ default: () => null }));
+vi.mock('./components/SatelliteOrbit', () => ({ default: () => null }));
 const objects = [
   { name: 'ALPHA', norad_id: 1, lat: 0, lon: 0, line1: 'line1-a', line2: 'line2-a', alt_km: 400, inclination_deg: 51.6, eccentricity: 0.001, period_minutes: 92, freshness: 'stale', epoch_age_days: 30, epoch: '2026-09-01T00:00:00Z', time: '2026-10-01T00:00:00Z' },
   { name: 'BETA', norad_id: 2, lat: 0, lon: 60, line1: 'line1-b', line2: 'line2-b', alt_km: 600, inclination_deg: 40, freshness: 'recent', epoch_age_days: 1, epoch: '2026-09-30T00:00:00Z', time: '2026-10-01T00:00:00Z' }
@@ -17,20 +19,19 @@ let container, root;
 beforeEach(() => {
   global.IS_REACT_ACT_ENVIRONMENT = true;
   container = document.createElement('div'); document.body.append(container); root = createRoot(container);
-  global.fetch = jest.fn(async url => {
+  global.fetch = vi.fn(async url => {
     const path = new URL(url).pathname;
     return { ok: true, json: async () => path === '/health' ? { status: 'ok' } : path === '/catalog' ? { objects, metadata: { mode: 'offline', stale_count: 1, catalog_count: 2, state_time: objects[0].time, retrieved_at: null } } : path === '/propagate' ? states : {} };
   });
 });
-afterEach(() => { act(() => root.unmount()); container.remove(); jest.restoreAllMocks(); });
+afterEach(() => { act(() => root.unmount()); container.remove(); vi.restoreAllMocks(); });
 // ReactDOM createRoot is used directly, not Testing Library; act is required.
-// eslint-disable-next-line testing-library/no-unnecessary-act
 async function render(node) { await act(async () => { root.render(node); }); }
 async function click(text) { const button = [...container.querySelectorAll('button')].find(e => e.textContent === text || e.textContent.includes(text)); expect(button).toBeTruthy(); await act(async () => button.click()); }
 async function change(element, value) { await act(async () => Simulate.change(element, { target: { value } })); }
 
 test('catalogue search, freshness and selection preserve numeric zero semantics', async () => {
-  const select = jest.fn(); await render(<Catalogue objects={objects} onSelect={select} />);
+  const select = vi.fn(); await render(<Catalogue objects={objects} onSelect={select} />);
   await change(container.querySelector('input'), '2');
   expect(container.querySelector('tbody').textContent).toContain('BETA');
   expect(container.querySelector('tbody').textContent).not.toContain('ALPHA');
@@ -54,7 +55,7 @@ test('loads real source state, supports forecast scrubber and system navigation'
 });
 test('catalogue errors are actionable and retry recovers', async () => {
   const original = fetch;
-  global.fetch = jest.fn(async url => url.includes('/catalog?') ? { ok: false, status: 503, json: async () => ({ detail: 'Source unavailable' }) } : original(url));
+  global.fetch = vi.fn(async url => url.includes('/catalog?') ? { ok: false, status: 503, json: async () => ({ detail: 'Source unavailable' }) } : original(url));
   await render(<App />); expect(container.querySelector('[role="alert"]').textContent).toContain('Source unavailable');
   global.fetch = original;
   await click('Refresh snapshot'); expect(container.querySelector('[role="alert"]')).toBeNull();
@@ -62,7 +63,7 @@ test('catalogue errors are actionable and retry recovers', async () => {
 });
 test('pair workflow uses explicit inputs and does not invent probability', async () => {
   const original = fetch;
-  global.fetch = jest.fn(async url => {
+  global.fetch = vi.fn(async url => {
     if (url.includes('/collision-check?')) return { ok: true, json: async () => ({ risk_level: 'SAFE', min_distance_km: 100, separation_km: [120,100,140], closest_event: { time: states[0].time, relative_velocity_km_s: 2 }, hours: 1, step_minutes: 1, sample_count: 61, start_time: states[0].time, elements_a: objects[0], elements_b: objects[1] }) };
     return original(url);
   });
@@ -79,9 +80,8 @@ test('pair workflow uses explicit inputs and does not invent probability', async
 });
 
 test('clearing maneuver inputs cancels pending work and clears loading and late results', async () => {
-  const ManeuverPanel = require('./components/ManeuverPanel').default;
   let finish;
-  global.fetch = jest.fn(() => new Promise(resolve => { finish = resolve; }));
+  global.fetch = vi.fn(() => new Promise(resolve => { finish = resolve; }));
   await render(<ManeuverPanel threatParams={{ threat_distance_km: 0 }} />);
   const signal = fetch.mock.calls[0][1].signal;
   expect(container.textContent).toContain('Computing heuristic candidates');
@@ -95,7 +95,7 @@ test('clearing maneuver inputs cancels pending work and clears loading and late 
 test('changing pair selection aborts slow request and ignores late response', async () => {
   const original = fetch;
   let finish, signal;
-  global.fetch = jest.fn((url, options) => {
+  global.fetch = vi.fn((url, options) => {
     if (url.includes('/collision-check?')) {
       signal = options.signal;
       return new Promise(resolve => { finish = resolve; });
@@ -116,7 +116,7 @@ test('changing pair selection aborts slow request and ignores late response', as
 test('a cancelled forecast cannot replace the new selection with a late error', async () => {
   const original = fetch;
   let fail, signal;
-  global.fetch = jest.fn((url, options) => {
+  global.fetch = vi.fn((url, options) => {
     if (url.includes('/propagate?') && url.includes('line1-a')) {
       signal = options.signal;
       return new Promise((resolve, reject) => { fail = reject; });
@@ -133,9 +133,8 @@ test('a cancelled forecast cannot replace the new selection with a late error', 
 });
 
 test.each(['Run pair screen', 'Scan primary asset'])('cancelled %s ignores late errors while replacement work remains pending', async action => {
-  const Workbench = require('./components/ConjunctionWorkbench').default;
   const pending = [];
-  global.fetch = jest.fn((url, options) => new Promise((resolve, reject) => pending.push({ reject, signal: options.signal })));
+  global.fetch = vi.fn((url, options) => new Promise((resolve, reject) => pending.push({ reject, signal: options.signal })));
   await render(<Workbench objects={objects} selected={objects[0]} comparison={objects[1]} onCompare={() => {}} />);
   await click(action);
   await change(container.querySelector('[name="look-ahead"]'), '6');
@@ -148,9 +147,8 @@ test.each(['Run pair screen', 'Scan primary asset'])('cancelled %s ignores late 
 });
 
 test('cancelled maneuver errors cannot contaminate replacement candidates', async () => {
-  const ManeuverPanel = require('./components/ManeuverPanel').default;
   const pending = [];
-  global.fetch = jest.fn((url, options) => new Promise((resolve, reject) => pending.push({ resolve, reject, signal: options.signal })));
+  global.fetch = vi.fn((url, options) => new Promise((resolve, reject) => pending.push({ resolve, reject, signal: options.signal })));
   await render(<ManeuverPanel threatParams={{ threat_distance_km: 1 }} />);
   await render(<ManeuverPanel threatParams={{ threat_distance_km: 0 }} />);
   expect(pending[0].signal.aborted).toBe(true);
@@ -171,7 +169,7 @@ test.each([
   ['unavailable', 'unavailable', true, 'Source unavailable']
 ])('source status %s/%s is explicit and retrieval remains separate from epoch', async (mode, cache_status, is_stale, label) => {
   const original = fetch;
-  global.fetch = jest.fn(async (url, options) => url.includes('/catalog?') ? {
+  global.fetch = vi.fn(async (url, options) => url.includes('/catalog?') ? {
     ok: true, json: async () => ({ objects: mode === 'unavailable' ? [] : objects, metadata: {
       mode, cache_status, is_stale, source: 'CelesTrak GP', group: 'stations', stale_count: 1,
       retrieved_at: mode === 'fallback' || mode === 'unavailable' ? null : '2026-10-02T12:00:00Z',
@@ -192,7 +190,7 @@ test('native OMM survives catalogue selection, forecast, pair and candidate requ
     return { ...rest, norad_id: i ? 799500001 : 100001,
       omm: { NORAD_CAT_ID: i ? 799500001 : 100001, EPOCH: object.epoch, MEAN_MOTION: 15.12345678 } };
   });
-  global.fetch = jest.fn(async url => {
+  global.fetch = vi.fn(async url => {
     const path = new URL(url).pathname;
     const data = path === '/catalog' ? { objects: native, metadata: { mode: 'cache', cache_status: 'fresh', source: 'CelesTrak GP', retrieved_at: '2026-10-02T12:00:00Z' } } :
       path === '/health' ? { status: 'ok' } : path === '/propagate' ? states :
@@ -242,4 +240,26 @@ test('analysis primary selection synchronizes the overview inspector', async () 
   await click('Orbital overview');
   expect(container.querySelector('.inspector').textContent).toContain('BETA');
   expect(container.querySelector('.selected-row').textContent).toContain('BETA');
+});
+
+test('catalogue size changes use the bounded API and retain full-ID selection', async () => {
+  await render(<App />);
+  await change(container.querySelector('[aria-label="Loaded catalogue limit"]'), '6000');
+  const calls = fetch.mock.calls.filter(([url]) => url.includes('/catalog?'));
+  expect(calls).toHaveLength(2);
+  expect(new URL(calls[1][0]).searchParams.get('limit')).toBe('6000');
+  expect(container.querySelector('.inspector').textContent).toContain('ALPHA');
+});
+
+test('historical classifications and failed refresh are explicit beside source status', async () => {
+  const original = fetch;
+  global.fetch = vi.fn(async (url, options) => url.includes('/catalog?') ? {
+    ok: true, json: async () => ({ objects, metadata: { mode: 'offline', classification_metadata: {
+      status: 'loaded', is_stale: true, oldest_retrieved_at: '2026-01-01T00:00:00Z',
+      refresh_error: 'Metadata refresh failed; retained evidence is shown.'
+    } } })
+  } : original(url, options));
+  await render(<App />);
+  expect(container.querySelector('.source-notice').textContent).toContain('Classification evidence is historical');
+  expect(container.querySelector('.source-notice [role="alert"]').textContent).toContain('Metadata refresh failed');
 });

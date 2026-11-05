@@ -8,6 +8,7 @@ from functools import lru_cache
 import hashlib
 import json
 import os
+import re
 import stat as file_stat
 from pathlib import Path
 from urllib.parse import parse_qsl, urlsplit
@@ -62,7 +63,7 @@ def parse_snapshot(raw):
     sources = document.get('sources')
     if not isinstance(sources, list) or not 1 <= len(sources) <= 8:
         raise ValueError('Expected one to eight metadata sources.')
-    index, total = {}, 0
+    index, total, retrieval_times = {}, 0, []
     snapshot_id = hashlib.sha256(raw).hexdigest()
     for source in sources:
         if not isinstance(source, dict) or source.get('provider') not in PROVIDERS:
@@ -72,6 +73,10 @@ def parse_snapshot(raw):
         retrieved = datetime.fromisoformat(source['retrieved_at'].replace('Z', '+00:00'))
         if retrieved.utcoffset() is None or retrieved > datetime.now(timezone.utc):
             raise ValueError('Metadata retrieval must be a past, timezone-aware timestamp.')
+        retrieval_times.append(retrieved)
+        digest = source.get('content_sha256')
+        if digest is not None and (not isinstance(digest, str) or not re.fullmatch('[0-9a-f]{64}', digest)):
+            raise ValueError('Invalid metadata content digest.')
         records = source.get('records')
         if not isinstance(records, list):
             raise ValueError('Metadata records must be a list.')
@@ -91,9 +96,12 @@ def parse_snapshot(raw):
                             retrieved_at=retrieved.astimezone(timezone.utc).isoformat(),
                             original_type=original,
                             category=provider['types'].get(original, 'unknown'))
+            if digest:
+                evidence['content_sha256'] = digest
             index.setdefault(identifier, []).append(evidence)
     return index, dict(status='loaded', snapshot_id=snapshot_id,
-                       record_count=total, object_count=len(index), source_count=len(sources))
+                       record_count=total, object_count=len(index), source_count=len(sources),
+                       oldest_retrieved_at=min(retrieval_times).astimezone(timezone.utc).isoformat())
 
 
 @lru_cache(maxsize=4)
@@ -111,7 +119,23 @@ def load_metadata():
         stat = Path(path).stat()
         if not file_stat.S_ISREG(stat.st_mode) or stat.st_size > MAX_BYTES:
             raise ValueError('Metadata snapshot exceeds size limit.')
-        return _load(path, (stat.st_ino, stat.st_mtime_ns, stat.st_ctime_ns, stat.st_size))
+        index, cached = _load(path, (stat.st_ino, stat.st_mtime_ns, stat.st_ctime_ns, stat.st_size))
+        metadata = dict(cached)
+        age = (datetime.now(timezone.utc) - datetime.fromisoformat(metadata['oldest_retrieved_at'])).total_seconds()
+        metadata.update(age_seconds=round(age, 3), is_stale=age >= 86400,
+                        freshness_policy='Oldest source retrieval older than 24 hours is historical; no accuracy guarantee.')
+        # Optional CLI status is advisory only; it never changes provenance or
+        # makes a failed update look like a newly retrieved snapshot.
+        status_path = Path(path).with_suffix('.status.json')
+        if status_path.exists():
+            try:
+                with status_path.open('rb') as handle:
+                    status = json.loads(handle.read(8193))
+                if not isinstance(status, dict) or status.get('status') not in ('loaded', 'pending'):
+                    metadata['refresh_error'] = 'Metadata refresh failed or paused; retained historical evidence is shown.'
+            except (OSError, ValueError):
+                metadata['refresh_error'] = 'Metadata refresh status unavailable; retained evidence is shown.'
+        return index, metadata
     except (OSError, ValueError, KeyError, TypeError, AttributeError, OverflowError, RecursionError):
         # Paths, raw data and potentially sensitive error contents stay private.
         return {}, {'status': 'unavailable', 'error': 'Local classification metadata could not be validated.'}

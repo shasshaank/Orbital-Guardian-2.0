@@ -25,3 +25,4 @@
 .view-legend b{font-size:16px}.view-controls{flex-wrap:wrap}.view-controls select{max-width:160px;padding:5px;font-size:11px}
 .globe-status{padding:10px 20px;font-size:10px;line-height:1.6;color:var(--muted);background:#0b141e}
 .globe-label{display:block;white-space:nowrap;padding:4px 7px;background:#0b1727e8;color:#fff0c4;border:1px solid #65788a;border-radius:3px;font:11px var(--mono)}
+.catalogue-size{display:flex;align-items:center;gap:12px;margin:0 0 16px;color:var(--muted);font-size:12px;flex-wrap:wrap}

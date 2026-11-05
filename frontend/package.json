@@ -5,25 +5,58 @@
   "dependencies": {
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.15.0",
+    "lucide-react": "^0.359.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "lucide-react": "^0.359.0",
     "three": "^0.160.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "lint": "eslint src --ext .js,.jsx",
-    "test:ci": "react-scripts test --watchAll=false --runInBand --watchman=false"
+    "start": "vite --host 127.0.0.1 --port 3000 --strictPort",
+    "build": "vite build",
+    "test": "vitest",
+    "lint": "eslint src benchmarks --ext .js,.jsx",
+    "benchmark:browser": "vite --host 127.0.0.1 --port 3001 --strictPort",
+    "benchmark:build": "vite build --config benchmarks/vite.config.mjs",
+    "test:ci": "vitest run"
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+      "eslint:recommended",
+      "plugin:react/recommended",
+      "plugin:react-hooks/recommended",
+      "plugin:jsx-a11y/recommended"
+    ],
+    "env": {
+      "browser": true,
+      "es2022": true,
+      "jest": true,
+      "node": true
+    },
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "jsx": true
+      }
+    },
+    "settings": {
+      "react": {
+        "version": "detect"
+      }
+    },
+    "rules": {
+      "react/prop-types": "off",
+      "react/no-unknown-property": "off",
+      "no-unused-vars": [
+        "error",
+        {
+          "ignoreRestSiblings": true
+        }
+      ]
+    },
+    "globals": {
+      "vi": "readonly"
+    }
   },
   "browserslist": {
     "production": [
@@ -39,7 +72,14 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.3"
+    "eslint": "8.57.1",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "jsdom": "26.1.0",
+    "postcss": "^8.5.32",
+    "tailwindcss": "^3.4.3",
+    "vite": "6.4.5",
+    "vitest": "4.1.12"
   }
 }

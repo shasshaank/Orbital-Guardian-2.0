@@ -65,7 +65,7 @@ def fetch_json(url, group):
                         pass
             raise ProviderError(f'CelesTrak returned HTTP {response.status_code}; refresh paused.',
                                 status=response.status_code, retry_after=delay,
-                                blocked=response.status_code in (301, 302, 303, 307, 308, 403, 404))
+                                blocked=True)
         chunks, size = [], 0
         deadline = time.monotonic() + 30
         for chunk in response.iter_content(chunk_size=65536):

@@ -69,14 +69,14 @@ export default function AssetMonitor({ satellites, onSelect }) {
         {isFocused && !selectedSat && (
           <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-[#1c1c1e] rounded-xl overflow-hidden border border-white/20 shadow-2xl">
             {displaySats.map(s => (
-              <div 
+              <button type="button"
                 key={s.name} 
                 onClick={() => handleScan(s)}
                 className="px-4 py-3 cursor-pointer border-b border-white/5 hover:bg-[#2c2c2e] transition-colors text-sm text-[#f5f5f7] flex items-center gap-2"
               >
                 <Satellite className="w-4 h-4 text-cyan-400" />
                 {s.name}
-              </div>
+              </button>
             ))}
             {displaySats.length === 0 && (
               <div className="px-4 py-3 text-xs text-[#a1a1a6]">

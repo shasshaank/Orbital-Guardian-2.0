@@ -1,23 +1,20 @@
-# SATCAT classification — local import checkpoint, 5 November 2026
+# Object classification
 
-Phase 3 now has an optional local metadata join and inspector evidence. No real metadata snapshot is shipped, downloaded or independently verified. Default objects remain unknown. Automatic metadata retrieval, refresh policy and real-source/browser acceptance remain unfinished; this is not full Phase 3 completion.
+Classification is optional SATCAT evidence joined to orbital elements by the full numeric catalogue ID. Names, active-group membership and OMM `CLASSIFICATION_TYPE` never determine an object category. Payload does not establish current operational status.
 
-## Source investigation
+## Sources and rights
 
-Primary documentation consulted on 5 November 2026:
+[CelesTrak SATCAT documentation](https://celestrak.org/satcat/satcat-format.php) defines `NORAD_CAT_ID` through nine digits and the types `PAY`, `R/B`, `DEB`, `UNK`. Its JSON endpoint is separate from GP elements. [Usage policy](https://celestrak.org/usage-policy.php) describes retrieval cadence; public access alone does not establish redistribution rights. The policy was retrieved on 5 November 2026: use documented queries, download only needed data once per update, and stop after non-200 responses for human investigation. This supports the bounded private verification described in RELEASE_READINESS.md; no blanket dataset redistribution license is asserted.
 
-| Source | Documented type vocabulary / access | Usage and redistribution finding |
-| --- | --- | --- |
-| [CelesTrak SATCAT format](https://celestrak.org/satcat/satcat-format.php) | `NORAD_CAT_ID` supports nine digits; `OBJECT_TYPE`: `PAY`, `R/B`, `DEB`, `UNK`. JSON/CSV SATCAT is separate from GP. | [Usage policy](https://celestrak.org/usage-policy.php) asks clients to download only needed data once per update; SATCAT changes manually once or twice daily. Stop on non-200 responses. That policy does not establish a blanket redistribution licence for this application. |
-| [Space-Track documentation](https://www.space-track.org/documentation) | Authenticated SATCAT access requires an account. The local adapter recognizes `PAYLOAD`, `ROCKET BODY`, `DEBRIS`, `UNKNOWN`; other values remain unknown. [Official operator handbook](https://www.space-track.org/documents/SFS_Handbook_For_Operators_V1.7.pdf) documents these object-type terms. No authenticated API request was made. | Public documentation describes approval to redistribute basic SSA information, including SATCAT, conditioned on appropriate citation. Review the applicable account agreement and exact product before acquisition or redistribution. No blanket project licence is inferred. |
+[Space-Track documentation](https://www.space-track.org/documentation) describes authenticated access and citation conditions for basic SSA redistribution. The importer understands its type vocabulary, but no authenticated integration or account agreement has been exercised. Review the exact product and applicable terms before acquisition or redistribution. No credentials are accepted by this importer.
 
-CelesTrak is the natural public metadata candidate alongside existing GP ingestion. Its usage documentation alone leaves this project's redistribution basis unresolved. Space-Track remains an optional local-import vocabulary adapter, not an authenticated integration. No credentials are required or accepted by this importer. Terms URLs are provenance references, not proof of permission. Source labels identify operator-supplied provenance; the importer does not authenticate that a file came from the named provider.
+The project's MIT license covers original code, not provider datasets. No real metadata snapshot is bundled. Source labels identify supplied provenance; the local importer cannot authenticate file origin.
 
-## Local configuration
+## Local imports
 
-Keep real imports outside the repository and Docker build context. Set backend `ORBITAL_METADATA_FILE` to an absolute readable JSON path. In Docker, mount the file read-only and set the path inside the container. There is no download endpoint or background refresh. `ORBITAL_OFFLINE=1` still allows this explicitly configured local file, without network access.
+Set `ORBITAL_METADATA_FILE` to an absolute readable JSON path outside the repository and Docker build context. In Docker, mount it read-only and use the container path. Local imports work in offline mode.
 
-Synthetic schema illustration (the ID/type below is not a factual classification):
+This is a synthetic schema illustration, not a factual classification:
 
 ```json
 {
@@ -31,24 +28,45 @@ Synthetic schema illustration (the ID/type below is not a factual classification
 }
 ```
 
-Wrap an independently obtained SATCAT JSON record list in `sources[].records`; use its actual download time and public query URL. CSV conversion is not implemented. For `space_track_satcat`, the supported public provenance URL is `https://www.space-track.org/basicspacedata/query/class/satcat/format/json`. Do not supply authenticated URLs, session tokens or credentials. CelesTrak URLs are restricted to `/satcat/records.php` with documented selectors or `/pub/satcat.csv`; Space-Track URL paths are restricted to the endpoint above. HTTPS, expected host, no userinfo/fragments and an allowlist of query keys are required.
+Wrap an independently obtained JSON record list in `sources[].records`, retaining its actual download time and public query URL. CSV conversion is not implemented. Optional `content_sha256` is the lowercase SHA-256 of original downloaded bytes. The refresh command supplies it automatically. The separate snapshot hash identifies exact import bytes.
 
-Limits: 16 MiB, 100,000 records total, one to eight source snapshots. Retrieval timestamps must include a timezone and cannot be in the future. A malformed source, ID or record rejects the entire file. Local paths and parse exceptions are never returned publicly. Missing/unreadable/invalid imports leave orbital elements usable, classifications unknown and an explicit metadata-unavailable notice. Validated files are cached by path/inode/mtime/ctime/size; replacing the file is detected on the next catalogue request. An invalid replacement is not silently replaced with old confirmed evidence.
+For `space_track_satcat`, the supported provenance URL is `https://www.space-track.org/basicspacedata/query/class/satcat/format/json`. CelesTrak URLs use `/satcat/records.php` with documented selectors or `/pub/satcat.csv`. HTTPS, expected host, no userinfo/fragments and an allowlist of query keys are required. Do not supply authenticated URLs, tokens or credentials.
 
-## Join and conflict rules
+Imports are bounded to 16 MiB, 100,000 records and one to eight source snapshots. Timestamps must be timezone-aware and not future-dated. A malformed source, ID or record rejects the entire import. Paths and parse exceptions are never returned publicly. An invalid replacement becomes unavailable rather than silently retaining old classifications. File changes invalidate the parsed cache.
 
-- Join only by numeric catalogue ID, range 1–999,999,999; digit strings normalize to integers. No name matching, truncation, active-group inference, operational inference or use of OMM `CLASSIFICATION_TYPE`.
-- Map provider-specific `OBJECT_TYPE` to `payload`, `rocket_body`, `debris`, `unknown`. Preserve the original string or null. Unsupported/missing/unknown values remain unknown; no fuzzy normalization.
-- All matching evidence must agree on one known category for `status=confirmed`. Different normalized categories, including known versus unknown, yield `status=conflict` and neutral styling. No newest-source/provider precedence. Same-category duplicates do not create a conflict; all evidence is retained.
-- No matching ID: `missing`; matching unknown-only evidence: `unknown`; invalid configured import: `unavailable`. Without configuration, status is `missing` and metadata reports `not_configured`.
-- `confirmed` means agreement of imported metadata under these rules, not independent observational verification or current operational status. Old metadata remains historical evidence: its retrieval time is shown; there is no classification freshness/accuracy guarantee.
+## Opt-in refresh
 
-Both `/catalog` and legacy `/satellites` objects gain `classification` with `norad_id`, `category`, `status`, `source`, `snapshot_id` and `evidence`. Each evidence entry preserves provider, source URL, terms reference, original type, normalized category and retrieval time. The SHA-256 snapshot ID identifies exact import bytes and is separate from the orbital-element snapshot. Extra SATCAT fields, credentials and unrelated metadata are not forwarded. Any embedded classification on an orbital record is replaced by the explicit join result.
+After reviewing terms applicable to the intended acquisition and use, run from the repository root:
 
-`/catalog.metadata.classification_metadata` reports `not_configured`, `loaded` (with counts/hash) or `unavailable` (generic error). The inspector exposes original types/times and conflicts. Catalogue, legend and globe continue sharing the existing category contract. No visual transform changes analysis inputs.
+```bash
+backend/.venv/bin/python -m backend.app.metadata_refresh \
+  --cache-dir /tmp/orbital-satcat --group active --terms-reviewed
+```
 
-## Validation and remaining work
+Then set `ORBITAL_METADATA_FILE=/tmp/orbital-satcat/active.json`. Use durable storage for ongoing operation; `/tmp` is only an example. The flag records an operator decision to proceed; it grants no rights and does not resolve redistribution conditions.
 
-Deterministic synthetic tests cover both vocabularies, full IDs through the API, same-name mismatches, missing/unknown/malformed records, source and duplicate conflicts, provenance validation, invalid file replacement and legacy list compatibility. Frontend tests cover ID validation and evidence rendering. These are automated checks, not browser or real-source verification.
+Schedule this command separately if automatic refresh is wanted. It never runs inside an API catalogue request. The default is no metadata retrieval. Supported groups match the GP allowlist; only the requested group is fetched. There is no per-object download loop, authenticated source or force-refresh switch.
 
-Next: resolve the applicable source/redistribution conditions, then add a separately cached, bounded, policy-compliant opt-in retriever and verify a real join. Finish browser category/picking/accessibility/slow-request acceptance, sustained GPU profiling and Phase 7 security/licensing/Docker gates. No deployment is authorized by this checkpoint.
+The command uses verified HTTPS, no redirects, one transport attempt, 3/15-second connect/read timeouts, a 30-second streaming-loop budget and bounded bytes/records. The loop budget is not a hard total deadline because socket reads have their own timeout. Whole-snapshot validation precedes atomic replacement. Original downloaded-byte SHA-256, public query, types and UTC retrieval time are retained.
+
+A filesystem lock coordinates processes sharing the directory. A persisted reservation enforces at least 12 hours between attempts even after a crash. HTTP errors never trigger immediate retries; `Retry-After` can extend the cooldown. Every non-200 HTTP response blocks until operator review. Invalid status or unwritable coordination fails closed. Failed refreshes retain the previous validated import and expose a generic error; there is no new retrieval timestamp for retained data. Offline mode makes no request. Isolated replicas without shared storage are not coordinated.
+
+Investigate the cause before clearing a blocked status file; never clear it to evade provider restrictions. Stop refresh workers before an operator repairs `<group>.status.json`, retaining `<group>.json`.
+
+## Join policy and API
+
+| Evidence | Category/status |
+| --- | --- |
+| All matching evidence agrees on a known category | `payload`, `rocket_body` or `debris` / `confirmed` |
+| Matching unknown, missing or unsupported type only | `unknown` / `unknown` |
+| Different normalized categories, including known vs unknown | `unknown` / `conflict` |
+| No matching ID | `unknown` / `missing` |
+| Configured import invalid or unreadable | `unknown` / `unavailable` |
+
+There is no newest-source or provider precedence. Same-category duplicates retain all evidence without creating a conflict. CelesTrak types map exactly; Space-Track maps `PAYLOAD`, `ROCKET BODY`, `DEBRIS`, `UNKNOWN`. Unknown vocabulary is never fuzzy-matched. IDs must be integers or digit strings in 1–999,999,999. There is no truncation or name matching.
+
+Both `/catalog` and `/satellites` add `classification` with category, status, ID, source, snapshot hash and original evidence. Any embedded classification on an orbital record is replaced. Evidence includes provider, public source URL, terms reference, original type, normalized category, retrieval time and optional original-byte hash. Extra SATCAT fields are not forwarded.
+
+`/catalog.metadata.classification_metadata` reports configuration/load status, counts/hash, oldest retrieval, age and `is_stale`. Evidence older than 24 hours is labeled historical; this is a descriptive policy, not an accuracy guarantee. Refresh failure never changes the imported provenance. Confirmed means agreement under these rules, not independent observation or current operational status.
+
+Automated tests use synthetic fixtures. One private stations SATCAT download and a real full-ID join were verified separately; see RELEASE_READINESS.md. Redistribution clearance and complete browser category acceptance remain separate release gates.

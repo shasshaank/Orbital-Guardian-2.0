@@ -1,0 +1,8 @@
+# Direct runtime dependencies. Regenerate requirements.txt with pip-compile.
+# FastAPI update admits patched Starlette; see docs/RELEASE_READINESS.md.
+fastapi==0.162.0
+uvicorn==0.27.0
+requests==2.34.2
+sgp4==2.23
+numpy==1.26.3
+python-dotenv==1.2.4
