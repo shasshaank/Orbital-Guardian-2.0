@@ -47,7 +47,7 @@ function FallbackEarth() {
   </mesh>;
 }
 
-function TexturedEarth() {
+function TexturedEarth({ active }) {
   const { gl, size, invalidate } = useThree();
   const clouds = useRef();
   const reduced = useReducedMotion();
@@ -66,12 +66,12 @@ function TexturedEarth() {
   }, [maps, gl]);
   // A low-rate visual clock preserves demand rendering during idle/reduced motion.
   useEffect(() => {
-    if (reduced) return;
+    if (reduced || !active) return;
     const timer = setInterval(() => { if (!document.hidden) invalidate(); }, 1000 / 24);
     return () => clearInterval(timer);
-  }, [reduced, invalidate]);
+  }, [reduced, active, invalidate]);
   useFrame((_, delta) => {
-    if (clouds.current && !reduced && !document.hidden) clouds.current.rotation.y += Math.min(delta, 0.1) * 0.003;
+    if (clouds.current && !reduced && active && !document.hidden) clouds.current.rotation.y += Math.min(delta, 0.1) * 0.003;
   });
   return <>
     <mesh scale={[1, 0.99664719, 1]} onClick={event => event.stopPropagation()}>
@@ -93,9 +93,9 @@ class TextureBoundary extends React.Component {
   render() { return this.state.failed ? <FallbackEarth /> : this.props.children; }
 }
 
-export default function Earth({ grid, onTextureError }) {
+export default function Earth({ grid, onTextureError, active = true }) {
   return <group>
-    <TextureBoundary onError={onTextureError}><Suspense fallback={<FallbackEarth />}><TexturedEarth /></Suspense></TextureBoundary>
+    <TextureBoundary onError={onTextureError}><Suspense fallback={<FallbackEarth />}><TexturedEarth active={active} /></Suspense></TextureBoundary>
     <Atmosphere />
     {grid && <mesh scale={[1.008, 1.0046, 1.008]} raycast={noPick}><sphereGeometry args={[1, 36, 18]} /><meshBasicMaterial wireframe color="#7bb9ec" transparent opacity={0.075} depthWrite={false} /></mesh>}
   </group>;

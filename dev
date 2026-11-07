@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")"
+if [ ! -x backend/.venv/bin/python ]; then
+  echo 'Missing backend environment. Follow README installation instructions first.' >&2
+  exit 1
+fi
+exec backend/.venv/bin/python scripts/dev.py

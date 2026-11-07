@@ -229,3 +229,7 @@ summary { min-height: 28px; cursor: pointer; color: #acc7e1; } details p { margi
 .category-filters { display: flex; flex-wrap: wrap; gap: 12px; border: 0; padding: 0; margin: 0; min-width: 0; }
 .category-filters legend { font-size: 11px; color: #b6c5d8; margin-bottom: 8px; }
 .category-filters label { font-size: 12px; }
+
+[hidden] { display: none !important; }
+.globe-canvas { position: relative; }
+.graphics-recovery { position: absolute; inset: 0; background: #090e19; padding: 24px; }

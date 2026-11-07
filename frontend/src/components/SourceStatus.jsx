@@ -11,6 +11,7 @@ export default function SourceStatus({ metadata, count }) {
         <p>Positions are SGP4 predictions, not sensor observations.</p>
       </div></details>
     </div>
+    {metadata.client_retained && <p role="status">Refresh failed. Retaining the last successful response received {utc(metadata.client_received_at)}; positions remain at {utc(metadata.state_time)} and are not current. Automatic retry every 15 seconds, or use Refresh snapshot.</p>}
     {metadata.last_error && <p role="alert" className="source-message">{metadata.last_error}</p>}
     {metadata.refresh_blocked && <p>Automatic source refresh is paused pending operator review.</p>}
     {metadata.classification_metadata?.status === 'unavailable' && <p role="alert">Classification metadata could not be validated. Categories remain unknown.</p>}

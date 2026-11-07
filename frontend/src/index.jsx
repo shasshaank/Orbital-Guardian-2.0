@@ -5,7 +5,7 @@ import App from './App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  // R3F 8 schedules forceContextLoss on Canvas effect teardown, including React
+  // 18 StrictMode's development replay. Use one real Canvas lifecycle here.
+  <App />
 );

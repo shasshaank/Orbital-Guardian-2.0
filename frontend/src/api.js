@@ -1,9 +1,28 @@
-export const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+export const API_URL = (process.env.REACT_APP_API_URL || '/api').replace(/\/$/, '');
 export async function request(path, params = {}, signal) {
-  const response = await fetch(`${API_URL}${path}?${new URLSearchParams(params)}`, { signal });
-  const data = await response.json().catch(() => { throw new Error('The API returned an unreadable response.'); });
-  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : `Request failed (${response.status}). Check the analysis inputs.`);
-  return data;
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal?.aborted) controller.abort();
+  signal?.addEventListener('abort', abort, { once: true });
+  let timedOut = false;
+  const timer = setTimeout(() => { timedOut = true; controller.abort(); }, 45000);
+  try {
+    let response;
+    try {
+      response = await fetch(`${API_URL}${path}?${new URLSearchParams(params)}`, { signal: controller.signal });
+    } catch (error) {
+      if (timedOut) throw new Error(`API request timed out at ${API_URL}${path}. Check backend logs, then retry.`);
+      if (error.name === 'AbortError') throw error;
+      throw new Error(`Cannot reach API at ${API_URL}${path}. Start both services with ./dev; for a deployed API check its URL, HTTPS and CORS origin.`);
+    }
+    const data = await response.json().catch(() => {
+      throw new Error(response.status >= 500 ? `API service unavailable (${response.status}) at ${API_URL}${path}. Start ./dev or check backend logs.` : 'The API returned an unreadable response.');
+    });
+    if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : `API request failed (${response.status}). Check backend logs and analysis inputs.`);
+    return data;
+  } finally {
+    clearTimeout(timer); signal?.removeEventListener('abort', abort);
+  }
 }
 export const number = (value, digits = 1) => Number.isFinite(value) ? value.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: digits }) : 'Unavailable';
 export const utc = value => value && Number.isFinite(Date.parse(value)) ? new Date(value).toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC') : 'Unknown';
@@ -21,6 +40,7 @@ export function elementParams(object, suffix = '') {
 }
 export const freshnessLabel = value => ({ recent: 'Recent elements', stale: 'Stale elements', future: 'Future epoch', unknown: 'Unknown element epoch', unavailable: 'Elements unavailable' }[value] || 'Unknown element epoch');
 export function sourceLabel(metadata) {
+  if (metadata.client_retained) return 'Retained snapshot · refresh failed';
   if (metadata.mode === 'unavailable') return 'Source unavailable';
   if (metadata.mode === 'offline') return 'Offline catalogue';
   if (metadata.cache_status === 'bundled' || metadata.mode === 'fallback') return 'Bundled fallback catalogue';

@@ -20,7 +20,7 @@ beforeEach(() => {
   global.IS_REACT_ACT_ENVIRONMENT = true;
   container = document.createElement('div'); document.body.append(container); root = createRoot(container);
   global.fetch = vi.fn(async url => {
-    const path = new URL(url).pathname;
+    const path = new URL(url, 'http://localhost').pathname.replace(/^\/api/, '');
     return { ok: true, json: async () => path === '/health' ? { status: 'ok' } : path === '/catalog' ? { objects, metadata: { mode: 'offline', stale_count: 1, catalog_count: 2, state_time: objects[0].time, retrieved_at: null } } : path === '/propagate' ? states : {} };
   });
 });
@@ -178,7 +178,8 @@ test.each([
   } : original(url, options));
   await render(<App />);
   expect(container.querySelector('.source-notice').textContent).toContain(label);
-  expect(container.querySelector('[role="alert"]')?.textContent || '').toBe(is_stale ? 'Provider refresh paused' : '');
+  if (mode === 'unavailable') expect(container.textContent).toContain('catalogue provider and its fallback are unavailable');
+  else expect(container.querySelector('[role="alert"]')?.textContent || '').toBe(is_stale ? 'Provider refresh paused' : '');
   expect(container.querySelector('.source-notice').textContent).toContain(
     mode === 'fallback' || mode === 'unavailable' ? 'Original retrieval time unknown' : '2026-10-02 12:00:00 UTC');
   expect(container.querySelector('.inspector')?.textContent || '').toContain(mode === 'unavailable' ? '' : '2026-09-01 00:00:00 UTC');
@@ -191,7 +192,7 @@ test('native OMM survives catalogue selection, forecast, pair and candidate requ
       omm: { NORAD_CAT_ID: i ? 799500001 : 100001, EPOCH: object.epoch, MEAN_MOTION: 15.12345678 } };
   });
   global.fetch = vi.fn(async url => {
-    const path = new URL(url).pathname;
+    const path = new URL(url, 'http://localhost').pathname.replace(/^\/api/, '');
     const data = path === '/catalog' ? { objects: native, metadata: { mode: 'cache', cache_status: 'fresh', source: 'CelesTrak GP', retrieved_at: '2026-10-02T12:00:00Z' } } :
       path === '/health' ? { status: 'ok' } : path === '/propagate' ? states :
       path === '/collision-check' ? { risk_level: 'WARNING', min_distance_km: 0, closest_event: { time: states[0].time, position_a: { x: 1, y: 2, z: 3 }, position_b: { x: 1, y: 2, z: 3 } } } :
@@ -199,16 +200,16 @@ test('native OMM survives catalogue selection, forecast, pair and candidate requ
     return { ok: true, json: async () => data };
   });
   await render(<App />);
-  const forecast = new URL(fetch.mock.calls.find(([url]) => url.includes('/propagate?'))[0]);
+  const forecast = new URL(fetch.mock.calls.find(([url]) => url.includes('/propagate?'))[0], 'http://localhost');
   expect(JSON.parse(forecast.searchParams.get('omm'))).toEqual(native[0].omm);
   expect(forecast.searchParams.has('line1')).toBe(false);
   expect(container.querySelector('.inspector pre').textContent).toContain('100001');
   await click('Conjunction analysis');
   await change(container.querySelector('[name="comparison-object"]'), '799500001');
   await click('Run pair screen');
-  const pair = new URL(fetch.mock.calls.find(([url]) => url.includes('/collision-check?'))[0]);
+  const pair = new URL(fetch.mock.calls.find(([url]) => url.includes('/collision-check?'))[0], 'http://localhost');
   expect(JSON.parse(pair.searchParams.get('omm_b')).NORAD_CAT_ID).toBe(799500001);
-  const candidate = new URL(fetch.mock.calls.find(([url]) => url.includes('/maneuver-recommend?'))[0]);
+  const candidate = new URL(fetch.mock.calls.find(([url]) => url.includes('/maneuver-recommend?'))[0], 'http://localhost');
   expect(JSON.parse(candidate.searchParams.get('omm'))).toEqual(native[0].omm);
   expect(candidate.searchParams.get('threat_distance_km')).toBe('0');
   expect(container.textContent).toContain('Not a validated burn');
@@ -248,7 +249,7 @@ test('catalogue size changes use the bounded API and retain full-ID selection', 
   await change(container.querySelector('[aria-label="Loaded catalogue limit"]'), '6000');
   const calls = fetch.mock.calls.filter(([url]) => url.includes('/catalog?'));
   expect(calls).toHaveLength(2);
-  expect(new URL(calls[1][0]).searchParams.get('limit')).toBe('6000');
+  expect(new URL(calls[1][0], 'http://localhost').searchParams.get('limit')).toBe('6000');
   expect(container.querySelector('.inspector').textContent).toContain('ALPHA');
 });
 
@@ -263,4 +264,40 @@ test('historical classifications and failed refresh are explicit beside source s
   await render(<App />);
   expect(container.querySelector('.source-notice').textContent).toContain('Classification evidence is historical');
   expect(container.querySelector('.source-notice [role="alert"]').textContent).toContain('Metadata refresh failed');
+});
+
+test('outage retains snapshot and canvas across navigation, then automatic retry recovers', async () => {
+  await render(<App />);
+  const canvas = container.querySelector('.globe-canvas');
+  const sourceTime = container.querySelector('.source-details').textContent;
+  const original = fetch;
+  global.fetch = vi.fn(async () => { throw new TypeError('Failed to fetch'); });
+  await click('Refresh snapshot');
+  expect(container.textContent).toContain('Cannot reach API at /api/catalog');
+  expect(container.textContent).toContain('Retained snapshot');
+  expect(container.querySelector('.inspector').textContent).toContain('ALPHA');
+  expect(container.querySelector('.source-details').textContent).toBe(sourceTime);
+  await click('Object catalogue'); await click('Orbital overview');
+  expect(container.querySelector('.globe-canvas')).toBe(canvas);
+  expect(container.textContent).toContain('API unavailable');
+  vi.useFakeTimers();
+  // Re-arm failure interval under fake time by explicitly refreshing.
+  await click('Refresh snapshot');
+  global.fetch = original;
+  await act(async () => vi.advanceTimersByTime(15000));
+  expect(container.textContent).toContain('API reachable');
+  expect(container.querySelector('.error')).toBeNull();
+  expect(container.textContent).not.toContain('Retained snapshot');
+  expect(container.querySelector('.globe-canvas')).toBe(canvas);
+  vi.useRealTimers();
+});
+
+test('a successful empty catalogue replaces previous objects honestly', async () => {
+  await render(<App />);
+  const original = fetch;
+  global.fetch = vi.fn(async (url, options) => url.includes('/catalog?') ? {ok:true,json:async()=>({objects:[],metadata:{mode:'cache',cache_status:'fresh',catalog_count:0}})} : original(url,options));
+  await click('Refresh snapshot');
+  expect(container.querySelector('.inspector').textContent).toContain('Select an orbital object');
+  expect(container.textContent).toContain('No catalog objects are available');
+  expect(container.querySelector('.globe-canvas')).not.toBeNull();
 });

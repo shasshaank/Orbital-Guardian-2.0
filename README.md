@@ -16,20 +16,33 @@ npm ci
 cd ..
 ```
 
-Start the API and frontend in separate terminals:
+Start both services from the repository root with one command:
 
 ```bash
-ORBITAL_OFFLINE=1 backend/.venv/bin/python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+./dev
 ```
+
+Open <http://127.0.0.1:3000>. The launcher verifies API health before starting Vite, stops both services on Ctrl-C or a child failure, and reports occupied ports instead of silently connecting to an old service. API logs share this terminal. No Python reload worker is started; restart `./dev` after backend/environment changes. Vite updates frontend edits automatically.
+
+The browser uses `/api`, proxied by Vite to `http://127.0.0.1:8000`. This avoids cross-origin development requests and IPv4/IPv6 `localhost` ambiguity. `npm start` inside `frontend` starts **only** Vite; it requires a separately running API. Avoid concurrent Vite servers sharing this checkout. The launcher forces dependency-cache rebuilding on startup to clear stale optimized chunks.
+
+For an explicit offline demonstration:
 
 ```bash
-cd frontend
-npm start
+ORBITAL_OFFLINE=1 ./dev
 ```
 
-Open <http://127.0.0.1:3000>. Offline mode uses old bundled elements and labels them accordingly. Omit `ORBITAL_OFFLINE=1` for on-demand CelesTrak GP retrieval with verified HTTPS, bounded responses, a two-hour minimum refresh interval, and explicit cached fallback.
+Offline mode uses old bundled elements and labels them accordingly. Normal startup uses provider retrieval and retained runtime snapshots, with a two-hour minimum provider refresh interval. `/health` verifies the backend only; `/api/catalog?limit=10` on the frontend origin reports provider/cache/metadata availability separately.
 
-Backend settings are in [backend/.env.example](backend/.env.example); copy it to `backend/.env` if needed. The frontend accepts `REACT_APP_API_URL` in `frontend/.env` or the build environment. This is a public **build-time** value: rebuild after changing it. Backend credentials must never use this variable. CORS defaults to the two local port-3000 origins; configure exact origins for another host.
+Backend settings are in [backend/.env.example](backend/.env.example); copy it to the ignored `backend/.env` and configure `ORBITAL_METADATA_FILE` as described below. Real metadata imports must remain outside Git. The launcher loads this file into the API environment.
+
+`REACT_APP_API_URL` is a public **build-time** frontend setting. Leave it unset (or `/api`) locally. For a separately hosted API set its full HTTPS origin, configure exact frontend origins in backend `CORS_ORIGINS`, then rebuild. Static production hosting must either proxy `/api` to the API or use that explicit origin. Vite preview also proxies `/api` locally. Backend secrets must never use frontend variables. `ORBITAL_API_PROXY` can override the Vite proxy target; it is server-only.
+
+The last successful in-memory catalogue survives temporary refresh failures, with its state time and a retained-snapshot notice. Failed refreshes retry every 15 seconds while the page is open; provider downloads still obey backend cooldowns. Browser reload clears this in-memory copy. A successful empty response is shown as empty, rather than silently keeping old objects.
+
+The globe remains mounted while navigating. Actual WebGL loss retains the canvas and waits for restoration; manual **Retry 3D view** creates a new renderer, with at most three retries per mounted workspace. Renderer errors are reported separately from context loss and API availability. The React 18 Strict Mode development wrapper is intentionally omitted with the installed R3F 8 Canvas lifecycle, whose effect teardown schedules a forced context loss. GPU listeners and timers are removed on teardown.
+
+For manual recovery verification, open <http://127.0.0.1:3000/benchmarks/recovery.html> while `./dev` runs. This development-only harness is excluded from the production build. It can trigger actual `WEBGL_lose_context` loss/restoration, block/restore API requests, count live canvases, and remount the workspace. Block API, use Refresh snapshot, then restore API and wait up to 15 seconds. Loss/restoration should retain the same canvas; Retry should replace it once. Navigation and selection should not add canvases. Reload the normal app URL after testing.
 
 ## Data and classifications
 
