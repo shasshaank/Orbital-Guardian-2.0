@@ -20,9 +20,9 @@ Collision probability is unavailable because covariance, size assumptions, encou
 
 ## Globe
 
-Category glyphs are original instanced geometry: green payload body/panels, red debris, amber rocket body and neutral unknown. Shared metadata rules govern the globe, legend, catalogue and inspector. Size is exaggerated. At distance, or above 2,000 loaded visible objects, geometry is simplified. Visual transforms never enter analytical calculations.
+Category glyphs are original instanced geometry: green payload body/panels, red debris, coral rocket body and neutral unknown. Shared metadata rules govern the globe, legend, catalogue and inspector. Size is exaggerated. Instanced two-triangle billboards blend category silhouettes toward smaller dots continuously with distance and density. Visual transforms never enter analytical calculations.
 
-The selected object alone advances with the forecast timeline; other markers remain at the catalogue snapshot. The Earth map is schematic. Neither the illustration nor the rendered globe is observational imagery.
+The selected object alone advances with the forecast timeline; other markers remain at the catalogue snapshot. The Earth uses attributed surface imagery and illustrative moving clouds; it is not current weather. Neither the illustration nor the rendered globe is observational imagery.
 
 ## Reproducible benchmarks
 
@@ -42,6 +42,6 @@ The retained 28 October measurements used Python 3.11.15 / macOS ARM64 and Node 
 | 168 h pair response | 7,347,838 B | 187,264 B | Full vs compact JSON; every separation sample retained |
 | Same pair elapsed | 475.95 ms | 273.52 ms | One sequential TestClient observation; not a latency distribution |
 
-The vectorized kernel uses more temporary array memory (about 2.02 MB Python-tracked peak in that workload, excluding input/RSS). Compact responses reduce serialization and browser allocation; both full trajectories are still propagated in backend memory. CPU glyph preparation at 100/1,000/6,000 objects does not establish GPU frame time or picking performance. Do not repeat the expensive 500-candidate maximum-horizon scan without a concrete reason.
+The vectorized kernel uses more temporary array memory (about 2.02 MB Python-tracked peak in that workload, excluding input/RSS). Compact responses reduce serialization and browser allocation; both full trajectories are still propagated in backend memory. CPU glyph preparation at 100/1,000/6,000 objects does not establish GPU frame time or picking performance.
 
-A browser harness is available through `npm run benchmark:browser` in `frontend`. It measures the production glyph geometry, synthetic instance placement, GPU queries when available, and picking costs. It excludes React/API/labels, and rejects hidden/occluded runs as performance evidence. See [release checks](RELEASE_READINESS.md) for reproduction and current acceptance limits.
+A browser harness is available through `npm run benchmark:browser` in `frontend`. It measures the production glyph geometry, synthetic instance placement, GPU queries when available, and picking costs. It excludes React/API/labels, and rejects hidden/occluded runs as performance evidence. Open `http://127.0.0.1:3001/benchmarks/browser.html` while the harness is running. It uses 10 warmup and 60 measured frames at each population size; JSON export records a manual run.

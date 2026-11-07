@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { glyphGeometry } from '../src/components/glyphGeometry';
+import { createMarkerMaterial, markerStyle, raycastMarkers } from '../src/components/markerRendering';
+import { CATEGORIES } from '../src/objectSemantics';
 
 const button = document.querySelector('#run');
 const status = document.querySelector('#status');
@@ -28,7 +29,7 @@ button.onclick = async () => {
     const report = { browser: navigator.userAgent, viewport: [900, 550],
       pixel_ratio: renderer.getPixelRatio(), webgl2: renderer.capabilities.isWebGL2,
       gpu_timer_available: Boolean(timer), visible: !document.hidden,
-      scope: 'Synthetic production glyph geometry; continuous rotating camera; 60 measured frames after 10 warmup frames per size; picking includes Earth and four instanced batches; excludes React/API/labels', workloads: [] };
+      scope: 'Synthetic production billboard markers; simplified Earth (not production Earth shader); continuous rotating camera; 60 measured frames after 10 warmup frames per size; picking includes Earth and four instanced batches; excludes React/API/labels', workloads: [] };
     for (const count of [100, 1000, 6000]) {
       status.textContent = `Measuring ${count.toLocaleString()} objects…`;
       const scene = new THREE.Scene();
@@ -37,8 +38,12 @@ button.onclick = async () => {
       const categories = ['payload', 'debris', 'rocket_body', 'unknown'];
       const meshes = categories.map((category, batch) => {
         const size = Math.floor(count / 4);
-        const geometry = count > 2000 ? new THREE.TetrahedronGeometry(0.7) : glyphGeometry(category);
-        const mesh = new THREE.InstancedMesh(geometry, new THREE.MeshBasicMaterial({ color: ['#73c79b', '#e68a8a', '#dfbd86', '#9aabba'][batch] }), size);
+        const geometry = new THREE.PlaneGeometry(2, 2);
+        const material = createMarkerMaterial(CATEGORIES[category].color, batch);
+        material.uniforms.uViewportHeight.value = 550;
+        const mesh = new THREE.InstancedMesh(geometry, material, size);
+        mesh.frustumCulled = false;
+        const positions = new Float32Array(size * 3), scales = new Float32Array(size).fill(1);
         for (let i = 0; i < size; i++) {
           const id = i * 4 + batch;
           // Fibonacci sphere and deterministic altitude: no random/live data.
@@ -46,8 +51,10 @@ button.onclick = async () => {
           const angle = id * Math.PI * (3 - Math.sqrt(5));
           const radius = 1.08 + (id % 71) / 180;
           dummy.position.set(Math.sqrt(1 - y * y) * Math.cos(angle), y, Math.sqrt(1 - y * y) * Math.sin(angle)).multiplyScalar(radius);
-          dummy.scale.setScalar(0.012); dummy.updateMatrix(); mesh.setMatrixAt(i, dummy.matrix);
+          positions.set(dummy.position.toArray(), i * 3);
+          dummy.scale.setScalar(1); dummy.updateMatrix(); mesh.setMatrixAt(i, dummy.matrix);
         }
+        mesh.raycast = (raycaster, hits) => raycastMarkers(mesh, positions, scales, camera, 550, markerStyle(camera.position.length(), count).radius, raycaster, hits);
         mesh.instanceMatrix.needsUpdate = true; mesh.computeBoundingSphere(); scene.add(mesh);
         return mesh;
       });
@@ -57,6 +64,8 @@ button.onclick = async () => {
         const timestamp = await frame();
         if (document.hidden) hiddenFrames++;
         camera.position.set(3.8 * Math.cos(i / 80), 1.1, 3.8 * Math.sin(i / 80)); camera.lookAt(0, 0, 0); camera.updateMatrixWorld();
+        const style = markerStyle(camera.position.length(), count);
+        meshes.forEach(mesh => { mesh.material.uniforms.uRadius.value = style.radius; mesh.material.uniforms.uDetail.value = style.detail; mesh.material.uniforms.uTime.value = i / 60; });
         let query;
         if (timer && i >= 10) { query = gl.createQuery(); gl.beginQuery(timer.TIME_ELAPSED_EXT, query); }
         const start = performance.now(); renderer.render(scene, camera); const elapsed = performance.now() - start;
@@ -85,7 +94,7 @@ button.onclick = async () => {
       }
       const timedOut = queries.length;
       queries.forEach(query => gl.deleteQuery(query));
-      report.workloads.push({ count, detailed: count <= 2000, draw_calls: renderer.info.render.calls,
+      report.workloads.push({ count, lod_detail: markerStyle(camera.position.length(), count).detail, draw_calls: renderer.info.render.calls,
         triangles: renderer.info.render.triangles, submission: stats(draw), frame_interval: stats(intervals),
         picking_12_rays: stats(picking), intersection_count: intersections, hidden_frames: hiddenFrames,
         gpu: !disjoint && !timedOut ? stats(gpu) : null, gpu_disjoint: disjoint, gpu_queries_unresolved: timedOut });

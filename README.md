@@ -67,10 +67,33 @@ curl --fail http://127.0.0.1:8000/health
 curl --fail 'http://127.0.0.1:8000/catalog?limit=10'
 ```
 
-The image runs as UID 10001. `/app/data/runtime` is writable for snapshots and locks. A mounted cache must also be writable by that UID. Mount optional metadata read-only outside the build context and set `ORBITAL_METADATA_FILE` to its container path. Keep `.env`, runtime data and real imports out of the build context. Docker build/run verification requires a running daemon; see [release status](docs/RELEASE_READINESS.md).
+The image runs as UID 10001. `/app/data/runtime` is writable for snapshots and locks. A mounted cache must also be writable by that UID. Mount optional metadata read-only outside the build context and set `ORBITAL_METADATA_FILE` to its container path. Keep `.env`, runtime data and real imports out of the build context. Verify the image with the health and catalogue requests above before deployment.
+
+## Deploy
+
+Deploy the backend and frontend as separate services. Use Python 3.11 and Node.js 22, as in CI.
+
+| Service | Root directory | Build command | Start / publish |
+| --- | --- | --- | --- |
+| API | `backend` | `pip install --require-hashes -r requirements.txt` | `uvicorn app.main:app --host 0.0.0.0 --port "$PORT"` |
+| Static frontend | `frontend` | `npm ci && npm run build` | Publish `build/` |
+
+Set these in the hosting service before the first build/start:
+
+- Frontend: `REACT_APP_API_URL=https://<your-api-host>`; rebuild when this changes.
+- Backend: `CORS_ORIGINS=https://<your-frontend-host>` with exact origins, separated by commas and no spaces or trailing slashes.
+- Backend: `ORBITAL_OFFLINE=0` for provider retrieval, or `1` for a bundled-data demo.
+- Backend: `ORBITAL_CACHE_DIR` pointing to a writable, persistent directory. Keep one API instance initially; isolated replicas do not share provider cooldowns.
+- Native Python hosting: use the host's assigned `PORT`; set `PORT=8000` if it does not provide one. The Docker image listens on port 8000 instead.
+
+Use `/health` for the API health check. After deployment, open `/catalog?limit=10` and inspect `metadata.mode`, retrieval time and errors, then load the frontend and check catalogue loading, object selection, forecasts and pair screening. A healthy API can still be serving bundled or stale data.
+
+The API has no authentication or application rate limiting. Asset scans can run up to 500 propagations per request; browser cancellation does not stop that work. Configure request rate/concurrency limits at the hosting proxy before unrestricted public access.
+
+GitHub should contain source, tests, dependency locks, `.env.example` files, CI, Docker configuration and required public assets. Keep `.env` files, virtual environments, `node_modules`, generated builds, runtime caches and private metadata imports out of Git. Check that Actions passes for the commit being deployed.
 
 ## Limits and licensing
 
 Positions are SGP4 predictions from published mean orbital elements, not sensor observations. Sampled screening can miss encounters between samples. No covariance, collision probability, radar coverage, validated maneuver outcome or operational guarantee is provided. See [scientific limits and benchmarks](docs/SCIENTIFIC_LIMITS.md).
 
-Original project code is [MIT licensed](LICENSE). Space Grotesk retains its [OFL notice](frontend/public/fonts/OFL.txt), and dependencies retain their own licenses. The schematic Earth and glyphs are drawn in code. The horizon illustration is generated artwork, not observational imagery. Old texture files with unknown provenance have been removed. Public orbital data and metadata retain their providers' terms; the MIT license does not grant rights to those datasets.
+Original project code is [MIT licensed](LICENSE). Space Grotesk retains its [OFL notice](frontend/public/fonts/OFL.txt), and dependencies retain their own licenses. Earth maps are attributed to Solar System Scope under CC BY 4.0; marker silhouettes and atmosphere are drawn in code. See [visualization details](docs/VISUALIZATION.md). The horizon illustration is generated artwork, not observational imagery. Public orbital data and metadata retain their providers' terms; the MIT license does not grant rights to those datasets.

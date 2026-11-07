@@ -1,10 +1,10 @@
-// Phase 3 metadata must supply this explicit contract before a category is shown.
+// Confirmed metadata must supply this contract before a category is shown.
 // Never infer type from names, active-group membership or OMM security markings.
 export const CATEGORIES = {
-  payload: { label: 'Payload / spacecraft', color: '#79d6a0', symbol: '▣' },
-  debris: { label: 'Debris', color: '#ef7d84', symbol: '◆' },
-  rocket_body: { label: 'Rocket body', color: '#d9b16f', symbol: '▰' },
-  unknown: { label: 'Unknown / unclassified', color: '#a6b7c7', symbol: '◇' }
+  payload: { label: 'Payload / spacecraft', color: '#00ff66', symbol: '▣' },
+  debris: { label: 'Debris', color: '#ff3b30', symbol: '◆' },
+  rocket_body: { label: 'Rocket body', color: '#ef6560', symbol: '▰' },
+  unknown: { label: 'Unknown / unclassified', color: '#91a1ba', symbol: '◇' }
 };
 export function categoryOf(object) {
   const c = object?.classification;

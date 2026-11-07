@@ -4,7 +4,7 @@ Classification is optional SATCAT evidence joined to orbital elements by the ful
 
 ## Sources and rights
 
-[CelesTrak SATCAT documentation](https://celestrak.org/satcat/satcat-format.php) defines `NORAD_CAT_ID` through nine digits and the types `PAY`, `R/B`, `DEB`, `UNK`. Its JSON endpoint is separate from GP elements. [Usage policy](https://celestrak.org/usage-policy.php) describes retrieval cadence; public access alone does not establish redistribution rights. The policy was retrieved on 5 November 2026: use documented queries, download only needed data once per update, and stop after non-200 responses for human investigation. This supports the bounded private verification described in RELEASE_READINESS.md; no blanket dataset redistribution license is asserted.
+[CelesTrak SATCAT documentation](https://celestrak.org/satcat/satcat-format.php) defines `NORAD_CAT_ID` through nine digits and the types `PAY`, `R/B`, `DEB`, `UNK`. Its JSON endpoint is separate from GP elements. [Usage policy](https://celestrak.org/usage-policy.php) describes retrieval cadence; public access alone does not establish redistribution rights. Use documented queries, download only needed data, and investigate non-200 responses before retrying.
 
 [Space-Track documentation](https://www.space-track.org/documentation) describes authenticated access and citation conditions for basic SSA redistribution. The importer understands its type vocabulary, but no authenticated integration or account agreement has been exercised. Review the exact product and applicable terms before acquisition or redistribution. No credentials are accepted by this importer.
 
@@ -69,4 +69,4 @@ Both `/catalog` and `/satellites` add `classification` with category, status, ID
 
 `/catalog.metadata.classification_metadata` reports configuration/load status, counts/hash, oldest retrieval, age and `is_stale`. Evidence older than 24 hours is labeled historical; this is a descriptive policy, not an accuracy guarantee. Refresh failure never changes the imported provenance. Confirmed means agreement under these rules, not independent observation or current operational status.
 
-Automated tests use synthetic fixtures. One private stations SATCAT download and a real full-ID join were verified separately; see RELEASE_READINESS.md. Redistribution clearance and complete browser category acceptance remain separate release gates.
+Automated tests use synthetic fixtures. Validate your own import and its usage terms before publishing classifications.

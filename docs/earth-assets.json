@@ -1,0 +1,38 @@
+{
+  "author": "Solar System Scope / INOVE",
+  "source": "https://www.solarsystemscope.com/textures/",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "assets": [
+    {
+      "file": "day-4k.jpg",
+      "source_url": "https://www.solarsystemscope.com/textures/download/8k_earth_daymap.jpg",
+      "sha256": "caa814405c01c5cbd9a7c444317a961d1d34b933b1624422fe4d5baba403aa60",
+      "bytes": 1481402
+    },
+    {
+      "file": "day-2k.jpg",
+      "source_url": "https://www.solarsystemscope.com/textures/download/8k_earth_daymap.jpg",
+      "sha256": "49cb425d06f4d5acfe84c471699c87eb22e5790ab47a0016e94e15d7b829c361",
+      "bytes": 414961
+    },
+    {
+      "file": "normal-2k.png",
+      "source_url": "https://www.solarsystemscope.com/textures/download/2k_earth_normal_map.tif",
+      "sha256": "c1183ae776acfd6951dfde9bbfda5a9d5a61951521d7564990aeb224ff0a5678",
+      "bytes": 623261
+    },
+    {
+      "file": "specular-2k.png",
+      "source_url": "https://www.solarsystemscope.com/textures/download/2k_earth_specular_map.tif",
+      "sha256": "e2c6c373a65d62aaa2c9c1521d97e7f60a00d35960955342fb67a8dd1f32c89f",
+      "bytes": 284372
+    },
+    {
+      "file": "clouds-2k.jpg",
+      "source_url": "https://www.solarsystemscope.com/textures/download/2k_earth_clouds.jpg",
+      "sha256": "fffd7f68d41b37274822150e54a6ef605af1d3ec35624d9f628c3b896bfa42ed",
+      "bytes": 965676
+    }
+  ]
+}

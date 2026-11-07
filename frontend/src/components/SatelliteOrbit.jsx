@@ -1,6 +1,11 @@
 import React, { useMemo, useEffect } from "react";
 import * as THREE from "three";
 import { Html } from "@react-three/drei";
+import { useThree } from '@react-three/fiber';
+import { Line2 } from 'three/examples/jsm/lines/Line2.js';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import { altitudeColors } from './trajectoryGeometry';
 
 export function latLonAltToVec3(lat, lon, altKm) {
   const a = 6378.137, e2 = 0.00669437999014;
@@ -13,22 +18,27 @@ export function latLonAltToVec3(lat, lon, altKm) {
   );
 }
 
-export default function SatelliteOrbit({ path, color = "#4fc3f7" }) {
-  const geometry = useMemo(() => {
-    if (!path || !path.length) return new THREE.BufferGeometry();
-    const points = path.map(
-      p => latLonAltToVec3(p.lat, p.lon, p.alt_km)
-    );
-    return new THREE.BufferGeometry().setFromPoints(points);
+export default function SatelliteOrbit({ path }) {
+  const { size } = useThree();
+  const lines = useMemo(() => {
+    if (!path || path.length < 2 || !path.every(p => ['lat', 'lon', 'alt_km'].every(key => Number.isFinite(p[key])))) return [];
+    const geometry = new LineGeometry();
+    geometry.setPositions(path.flatMap(p => latLonAltToVec3(p.lat, p.lon, p.alt_km).toArray()));
+    geometry.setColors(altitudeColors(path));
+    return [
+      new LineMaterial({ vertexColors: true, linewidth: 7, transparent: true, opacity: 0.13, depthWrite: false, blending: THREE.AdditiveBlending }),
+      new LineMaterial({ vertexColors: true, linewidth: 1.8, transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending })
+    ].map(material => {
+      material.toneMapped = false;
+      const line = new Line2(geometry, material); line.raycast = () => null;
+      return line;
+    });
   }, [path]);
-
-  useEffect(() => () => geometry.dispose(), [geometry]);
-
-  return (
-    <line geometry={geometry}>
-      <lineBasicMaterial color={color} opacity={0.6} transparent />
-    </line>
-  );
+  useEffect(() => { lines.forEach(line => line.material.resolution.set(size.width, size.height)); }, [lines, size.width, size.height]);
+  useEffect(() => () => {
+    lines[0]?.geometry.dispose(); lines.forEach(line => line.material.dispose());
+  }, [lines]);
+  return <group>{lines.map((line, i) => <primitive object={line} key={i} />)}</group>;
 }
 
 export function CollisionMarker({ event, satA, satB }) {
@@ -39,6 +49,7 @@ export function CollisionMarker({ event, satA, satB }) {
   const posB = useMemo(() => latLonAltToVec3(event.location_b.lat, event.location_b.lon, event.location_b.alt_km), [event]);
   
   const lineGeom = useMemo(() => new THREE.BufferGeometry().setFromPoints([posA, posB]), [posA, posB]);
+  useEffect(() => () => lineGeom.dispose(), [lineGeom]);
 
   return (
     <group>

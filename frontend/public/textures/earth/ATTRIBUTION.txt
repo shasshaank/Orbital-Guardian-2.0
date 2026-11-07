@@ -1,0 +1,8 @@
+Earth texture maps by Solar System Scope / INOVE.
+Source: https://www.solarsystemscope.com/textures/
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+
+Changes: day map resized from the 8K source to 4K/2K JPEG;
+2K normal/specular TIFF maps converted losslessly to PNG. Cloud JPEG unchanged.
+Maps are illustrative surface imagery, not current weather or observations.

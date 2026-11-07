@@ -59,6 +59,8 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*
+!.env.example
 backend/.env
 frontend/.env
 
@@ -71,9 +73,6 @@ frontend/.env
 .DS_Store
 Thumbs.db
 
-# ── Docker ────────────────────────────────────────────────────────────────
-.dockerignore
-
 # ── OS ────────────────────────────────────────────────────────────────────
 .DS_Store
 .AppleDouble
@@ -81,5 +80,6 @@ Thumbs.db
 
 # Runtime catalog cache (bundled fixtures remain tracked)
 backend/data/runtime/
-# Keep the backend Docker build exclusions under version control.
-!backend/.dockerignore
+
+# Optional private SATCAT imports must remain outside version control.
+backend/data/*satcat*

@@ -6,7 +6,7 @@ GP ingestion, cache policy and API contracts. Classification is a separate SATCA
 
 Default source: [CelesTrak GP](https://celestrak.org/NORAD/documentation/gp-data-formats.php), `https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=JSON`. These are OMM-compatible JSON elements, not radar observations or a continuous sensor feed. SGP4 computes each displayed state at `state_time`; `epoch` describes the element set, while `retrieved_at` describes the download. Recent elements do not establish positional accuracy.
 
-The active group is **not the full space-object catalogue** and is not a classification authority. The backend allows these explicit query groups from the [current-data catalogue](https://celestrak.org/NORAD/elements/): `active`, `stations`, `visual`, `last-30-days`, `analyst`, `fengyun-1c-debris`, `iridium-33-debris`, `cosmos-2251-debris`. Debris-event groups cover particular populations, not all debris. The retained real-source verification covers the active group. Other allowed groups are API options, not verified coverage claims or automatic additional downloads. Unsupported groups return 422. The current frontend requests active only; group selection is not exposed in the UI.
+The active group is **not the full space-object catalogue** and is not a classification authority. The backend allows these explicit query groups from the [current-data catalogue](https://celestrak.org/NORAD/elements/): `active`, `stations`, `visual`, `last-30-days`, `analyst`, `fengyun-1c-debris`, `iridium-33-debris`, `cosmos-2251-debris`. Debris-event groups cover particular populations, not all debris. Additional groups are fetched only when requested. Unsupported groups return 422. The current frontend requests active only; group selection is not exposed in the UI.
 
 SupGP is a different interface with potentially several elements per object/source/epoch; see [SupGP queries](https://celestrak.org/NORAD/documentation/sup-gp-queries.php). It is not ingested by this GP implementation. Space-Track is optional and **not implemented**; no account or credentials are needed for the default application. Authenticated provider terms and credential handling must be reviewed before that integration.
 
@@ -54,7 +54,7 @@ Snapshot metadata includes provider/query/format, unique content+retrieval `snap
 
 `is_stale` concerns snapshot retrieval age/availability, not orbital uncertainty. Element freshness is relative to the API state timestamp: any future epoch → `future`; age 0–7 days inclusive → `recent`; over seven days → `stale`. Invalid/missing required epochs are rejected, not assigned a synthetic epoch. UI labels also handle unknown/unavailable metadata distinctly. These policies do not establish orbit accuracy.
 
-## Local operation and opt-in integration evidence
+## Local operation and provider verification
 
 Backend `.env` is loaded; see `backend/.env.example`. Frontend `REACT_APP_API_URL` is substituted **at build time**; changing it requires rebuilding. CORS defaults to localhost:3000 and 127.0.0.1:3000; `CORS_ORIGINS` configures exact additional origins. `/health` only proves service availability. A reachable health endpoint does not prove fresh provider data or a compatible `/catalog` contract.
 
@@ -68,7 +68,7 @@ ORBITAL_OFFLINE=0 ORBITAL_CACHE_DIR=/tmp/orbital-omm-verification \
   --output /tmp/orbital-omm-active.json
 ```
 
-The opt-in script exits nonzero on fallback/unavailable data and records real retrieval metadata, counts, sample epochs, IDs above 99999, CORS, catalogue and forecast TestClient results. It does not run in offline CI or start/deploy servers. Real provider transport is verified, but TestClient is not socket/browser acceptance. Evidence and limitations are in [RELEASE_READINESS.md](RELEASE_READINESS.md).
+The opt-in script exits nonzero on fallback/unavailable data and records real retrieval metadata, counts, sample epochs, IDs above 99999, CORS, catalogue and forecast TestClient results. It does not run in offline CI or start/deploy servers. TestClient checks do not replace testing the deployed API from a browser.
 
 Public access does not by itself establish a blanket redistribution licence. Attribute CelesTrak and retain its query/provenance. Consult provider terms before redistributing bulk snapshots. The project MIT license does not cover provider data or grant Space-Track permissions.
 
