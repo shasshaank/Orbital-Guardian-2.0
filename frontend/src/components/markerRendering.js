@@ -5,7 +5,7 @@ export function markerStyle(distance, count, viewportWidth = 900) {
   const density = smoothstep(2000, 6500, count);
   const detail = 1 - smoothstep(THREE.MathUtils.lerp(4.5, 2.3, density), THREE.MathUtils.lerp(11, 6, density), distance);
   const screenScale = THREE.MathUtils.clamp(Math.sqrt(viewportWidth / 900), 0.65, 1);
-  return { detail, radius: THREE.MathUtils.lerp(2, 5.5, detail) * THREE.MathUtils.lerp(1, 0.82, density) * screenScale };
+  return { detail, radius: THREE.MathUtils.lerp(2, 3.6, detail) * THREE.MathUtils.lerp(1, 0.82, density) * screenScale };
 }
 
 export function createMarkerMaterial(color, category) {
@@ -50,7 +50,7 @@ export function createMarkerMaterial(color, category) {
         } else if (uCategory == 2.0) {
           silhouette = min(box(p, vec2(0.22, 0.45)) - 0.09, box(p - vec2(0.0, -0.39), vec2(0.4, 0.11)));
         } else {
-          silhouette = abs(abs(p.x) + abs(p.y) - 0.65) - 0.105;
+          silhouette = length(p) - 0.55;
         }
         float dotShape = length(p) - 0.47;
         float distance = mix(dotShape, silhouette, smoothstep(0.05, 0.9, vDetail));

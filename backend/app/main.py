@@ -10,7 +10,7 @@ Endpoints:
 """
 
 from fastapi import FastAPI, HTTPException, Query
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import os
 import math
 import json
@@ -21,7 +21,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .tle_fetcher import fetch_tle_data, fetch_tle_by_catnr, get_catalog
 from .propagator import propagate_satellite, get_current_position
-from .collision_detector import calculate_closest_approach
+from .collision_detector import calculate_closest_approach, refine_closest_approach
+from .propagator import state_at
 from .maneuver_engine import recommend_maneuver
 from .object_metadata import load_metadata, classification_for
 
@@ -180,7 +181,12 @@ def check_collision(
         raise HTTPException(status_code=422, detail=f"Propagation failed: {exc}") from exc
 
     result = calculate_closest_approach(pos_a, pos_b, include_paths=include_paths)
-    result.update(start_time=start.isoformat(), hours=hours, step_minutes=step_minutes,
+    try:
+        refine_closest_approach(result, pos_a, pos_b,
+                               lambda at: state_at(a, at), lambda at: state_at(b, at))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=f"Refinement failed: {exc}") from exc
+    result.update(start_time=start.isoformat(), end_time=pos_a[-1]['time'], hours=hours, step_minutes=step_minutes,
                   elements_a=record_metadata({'omm': json.loads(omm_a)} if omm_a else {'line1': line1_a, 'line2': line2_a}, start),
                   elements_b=record_metadata({'omm': json.loads(omm_b)} if omm_b else {'line1': line1_b, 'line2': line2_b}, start))
     return result
@@ -218,11 +224,22 @@ def asset_scan(
             failed += 1
             continue
 
-        result = calculate_closest_approach(primary_pos, sat_pos)
+        try:
+            a_sat = satellite_from_elements(**record_args(primary))
+            b_sat = satellite_from_elements(**record_args(sat))
+            result = calculate_closest_approach(primary_pos, sat_pos, include_paths=False)
+            refine_closest_approach(result, primary_pos, sat_pos,
+                                   lambda at: state_at(a_sat, at), lambda at: state_at(b_sat, at))
+        except ValueError:
+            failed += 1
+            continue
         if result["risk_level"] != "SAFE":
             risks.append({
                 "target_name": sat["name"],
                 "norad_id": record_metadata(sat)["norad_id"],
+                "target_elements": record_metadata(sat, start),
+                "refinement": result['refinement'],
+                "minimum_sampled_separation_km": result['minimum_sampled_separation_km'],
                 "min_distance_km": result["min_distance_km"],
                 "risk_level": result["risk_level"],
                 "closest_event": result["closest_event"]
@@ -232,6 +249,7 @@ def asset_scan(
         "asset": primary["name"],
         "scan_count": len(candidates[:500])-failed,
         "attempted_count": len(candidates[:500]),
+        "nonrecent_candidate_count": sum(record_metadata(s, start)['freshness'] != 'recent' for s in candidates[:500]),
         "failed_count": failed,
         "candidate_count": len(candidates),
         "skipped_count": max(0, len(candidates)-500),
@@ -239,7 +257,9 @@ def asset_scan(
         "step_minutes": 1,
         "start_time": start.isoformat(),
         "processing_ms": round((time.perf_counter()-started)*1000, 2),
-        "method": "sampled separation; first 500 catalog candidates only",
+        "method": "coarse samples plus candidate SGP4 refinement; first 500 active-group candidates only",
+        "refinement_resolution_seconds": 0.1,
+        "end_time": (start + timedelta(hours=hours)).isoformat(),
         "asset_elements": record_metadata(primary, start),
         "risks": sorted(risks, key=lambda x: x["min_distance_km"] if x["min_distance_km"] is not None else 999999)
     }

@@ -5,7 +5,7 @@ import { useThree } from '@react-three/fiber';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import { altitudeColors } from './trajectoryGeometry';
+import { altitudeColors, altitudeRange, trajectorySegments } from './trajectoryGeometry';
 
 export function latLonAltToVec3(lat, lon, altKm) {
   const a = 6378.137, e2 = 0.00669437999014;
@@ -18,25 +18,29 @@ export function latLonAltToVec3(lat, lon, altKm) {
   );
 }
 
-export default function SatelliteOrbit({ path }) {
+export default function SatelliteOrbit({ path, sample = null }) {
   const { size } = useThree();
   const lines = useMemo(() => {
-    if (!path || path.length < 2 || !path.every(p => ['lat', 'lon', 'alt_km'].every(key => Number.isFinite(p[key])))) return [];
-    const geometry = new LineGeometry();
-    geometry.setPositions(path.flatMap(p => latLonAltToVec3(p.lat, p.lon, p.alt_km).toArray()));
-    geometry.setColors(altitudeColors(path));
-    return [
-      new LineMaterial({ vertexColors: true, linewidth: 7, transparent: true, opacity: 0.13, depthWrite: false, blending: THREE.AdditiveBlending }),
-      new LineMaterial({ vertexColors: true, linewidth: 1.8, transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending })
-    ].map(material => {
-      material.toneMapped = false;
-      const line = new Line2(geometry, material); line.raycast = () => null;
-      return line;
-    });
-  }, [path]);
+    const portions = sample === null ? [{ path, past: false }] : [
+      { path: path.slice(0, sample + 1), past: true }, { path: path.slice(sample), past: false }
+    ];
+    return portions.flatMap(portion => trajectorySegments(portion.path).flatMap(segment => {
+      const geometry = new LineGeometry();
+      geometry.setPositions(segment.flatMap(p => latLonAltToVec3(p.lat, p.lon, p.alt_km).toArray()));
+      geometry.setColors(altitudeColors(segment, altitudeRange(path)));
+      return [
+        new LineMaterial({ vertexColors: true, linewidth: 5, transparent: true, opacity: portion.past ? 0.04 : 0.1, depthTest: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+        new LineMaterial({ vertexColors: true, linewidth: 1.8, transparent: true, opacity: portion.past ? 0.3 : 0.95, depthTest: true, depthWrite: false })
+      ].map(material => {
+        material.toneMapped = false;
+        const line = new Line2(geometry, material); line.raycast = () => null;
+        return line;
+      });
+    }));
+  }, [path, sample]);
   useEffect(() => { lines.forEach(line => line.material.resolution.set(size.width, size.height)); }, [lines, size.width, size.height]);
   useEffect(() => () => {
-    lines[0]?.geometry.dispose(); lines.forEach(line => line.material.dispose());
+    new Set(lines.map(line => line.geometry)).forEach(geometry => geometry.dispose()); lines.forEach(line => line.material.dispose());
   }, [lines]);
   return <group>{lines.map((line, i) => <primitive object={line} key={i} />)}</group>;
 }

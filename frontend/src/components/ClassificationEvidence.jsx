@@ -11,7 +11,7 @@ const messages = {
 
 export default function ClassificationEvidence({ classification }) {
   return <div className="inspector-section"><span className="eyebrow">CLASSIFICATION EVIDENCE</span>
-    <p>{messages[classification?.status] || messages.missing}</p>
+    <p>{classification?.explanation || messages[classification?.status] || messages.missing}</p>
     {classification?.evidence?.map((entry, i) => <p key={i} className="muted small">
       {entry.source} · original type: {entry.original_type || 'Not supplied'} · retrieved {utc(entry.retrieved_at)}
     </p>)}

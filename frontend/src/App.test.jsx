@@ -71,7 +71,7 @@ test('pair workflow uses explicit inputs and does not invent probability', async
   const selects = container.querySelectorAll('.analysis-inputs select');
   expect([...container.querySelectorAll('button')].find(e => e.textContent === 'Run pair screen').disabled).toBe(true);
   await change(selects[1], '2'); await change(selects[2], '1'); await click('Run pair screen');
-  expect(container.textContent).toContain('100.000'); expect(container.textContent).toContain('Above threshold');
+  expect(container.textContent).toContain('100.000'); expect(container.textContent).toContain('Separation ≥ 50 km');
   expect(container.textContent).toContain('Collision probability'); expect(container.textContent).toContain('Unavailable');
   const url = fetch.mock.calls.find(([url]) => url.includes('/collision-check?'))[0]; expect(url).toContain('line1_a=line1-a');
   expect(url).toContain('include_paths=false');
@@ -224,12 +224,13 @@ test('unknown and unavailable epochs have distinct accessible descriptions', asy
 
 test('globe categories expose filtered selection without changing inspector or duplicating catalogue requests', async () => {
   await render(<App />);
-  await change(container.querySelector('[aria-label="Globe category"]'), 'debris');
+  expect(container.querySelector('.category-filters').textContent).toContain('Unknown / unclassified (2)');
+  await act(async () => container.querySelector('[name="category-unknown"]').click());
   expect(container.textContent).toContain('Selected object filtered out of globe.');
   expect(container.querySelector('.inspector').textContent).toContain('ALPHA');
   expect(container.querySelector('.inspector').textContent).toContain('Unknown / unclassified');
   expect(fetch.mock.calls.filter(([url]) => url.includes('/catalog?'))).toHaveLength(1);
-  await change(container.querySelector('[aria-label="Globe category"]'), 'all');
+  await act(async () => container.querySelector('[name="category-unknown"]').click());
   expect(container.textContent).toContain('Checking selected marker visibility.');
 });
 

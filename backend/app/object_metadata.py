@@ -114,7 +114,7 @@ def _load(path, signature):
 def load_metadata():
     path = os.getenv('ORBITAL_METADATA_FILE')
     if not path:
-        return {}, {'status': 'not_configured'}
+        return {}, {'status': 'not_configured', 'explanation': 'No SATCAT import configured. GP security classification and active-group membership do not establish object type.'}
     try:
         stat = Path(path).stat()
         if not file_stat.S_ISREG(stat.st_mode) or stat.st_size > MAX_BYTES:
@@ -154,4 +154,8 @@ def classification_for(identifier, index, metadata):
             category, status = next(iter(categories)), 'confirmed'
     return dict(norad_id=identifier, category=category, status=status,
                 source='; '.join(sorted({entry['source'] for entry in evidence})) or None,
-                snapshot_id=metadata.get('snapshot_id'), evidence=evidence)
+                snapshot_id=metadata.get('snapshot_id'), evidence=evidence,
+                explanation=('No SATCAT import configured.' if metadata['status'] == 'not_configured' else
+                             'No matching authoritative type evidence.' if not evidence else
+                             'Conflicting type evidence.' if status == 'conflict' else
+                             'Type from catalogue-ID metadata join; operational status is separate.'))

@@ -28,6 +28,16 @@ class MetadataTests(unittest.TestCase):
         index, metadata = parse_snapshot(snapshot(sources))
         return classification_for(identifier, index, metadata)
 
+    def test_normalized_id_and_separate_status_security(self):
+        result = self.classify([source([dict(NORAD_CAT_ID='000025544', OBJECT_TYPE='PAY',
+                                            OPS_STATUS_CODE='-', CLASSIFICATION_TYPE='S')])], 25544)
+        self.assertEqual(result['category'], 'payload')
+        self.assertEqual(result['evidence'][0]['norad_id'], 25544)
+        self.assertNotIn('operational_status', result)
+        self.assertNotIn('security_classification', result)
+        missing = classification_for(1, {}, {'status': 'not_configured'})
+        self.assertIn('No SATCAT import', missing['explanation'])
+
     def test_vocabularies_full_ids_and_original_evidence(self):
         for provider, codes in [('celestrak_satcat', ['PAY', 'R/B', 'DEB']),
                                 ('space_track_satcat', ['PAYLOAD', 'ROCKET BODY', 'DEBRIS'])]:
@@ -80,7 +90,7 @@ class MetadataTests(unittest.TestCase):
 
     def test_configuration_reload_failure_and_no_path_disclosure(self):
         with patch.dict(os.environ, {'ORBITAL_METADATA_FILE': ''}):
-            self.assertEqual(load_metadata(), ({}, {'status': 'not_configured'}))
+            self.assertEqual(load_metadata()[1]['status'], 'not_configured')
         with TemporaryDirectory() as directory:
             path = Path(directory) / 'private-metadata.json'
             with patch.dict(os.environ, {'ORBITAL_METADATA_FILE': str(path)}):

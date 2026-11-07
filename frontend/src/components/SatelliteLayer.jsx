@@ -9,6 +9,7 @@ import { categoryOf, CATEGORIES, hasState } from '../objectSemantics';
 
 function Batch({ objects, category, selected, comparison, forecast, onSelect, totalCount }) {
   const mesh = useRef();
+  const [hovered, setHovered] = React.useState(null);
   const { invalidate, camera, size } = useThree();
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const reduced = useReducedMotion();
@@ -35,14 +36,14 @@ function Batch({ objects, category, selected, comparison, forecast, onSelect, to
       const state = active && hasState(forecast) ? forecast : sat;
       dummy.position.copy(latLonAltToVec3(state.lat, state.lon, state.alt_km));
       positions.set(dummy.position.toArray(), index * 3);
-      scales[index] = active || participant ? 1.7 : 1;
+      scales[index] = active || participant ? 1.7 : hovered === index ? 1.4 : 1;
       dummy.scale.setScalar(scales[index]);
       dummy.updateMatrix(); mesh.current.setMatrixAt(index, dummy.matrix);
     });
     mesh.current.instanceMatrix.needsUpdate = true;
     mesh.current.computeBoundingSphere(); invalidate();
-  }, [objects, selected, comparison, forecast, dummy, invalidate, positions, scales]);
-  return <instancedMesh ref={mesh} args={[geometry, material, objects.length]} frustumCulled={false} onClick={e => {
+  }, [objects, selected, comparison, forecast, dummy, invalidate, positions, scales, hovered]);
+  return <instancedMesh ref={mesh} args={[geometry, material, objects.length]} frustumCulled={false} onPointerMove={e => { e.stopPropagation(); setHovered(e.instanceId); }} onPointerOut={() => setHovered(null)} onClick={e => {
     // Ignore clicks that finish a drag gesture.
     e.stopPropagation(); if (e.delta <= 4 && objects[e.instanceId]) onSelect(objects[e.instanceId]);
   }} />;

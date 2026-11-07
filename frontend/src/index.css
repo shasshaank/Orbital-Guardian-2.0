@@ -225,3 +225,7 @@ summary { min-height: 28px; cursor: pointer; color: #acc7e1; } details p { margi
 }
 @supports not ((backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px))) { .topbar,.sidebar,.orbital-view,.inspector,.panel,.analysis-workbench,.catalogue,.source-notice,.metric-strip>div { background-color: #10151f; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation: none!important; transition: none!important; scroll-behavior: auto!important; } button:hover:not(:disabled),button:active:not(:disabled) { transform: none; } }
+
+.category-filters { display: flex; flex-wrap: wrap; gap: 12px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.category-filters legend { font-size: 11px; color: #b6c5d8; margin-bottom: 8px; }
+.category-filters label { font-size: 12px; }

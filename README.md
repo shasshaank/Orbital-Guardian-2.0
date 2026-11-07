@@ -97,3 +97,15 @@ GitHub should contain source, tests, dependency locks, `.env.example` files, CI,
 Positions are SGP4 predictions from published mean orbital elements, not sensor observations. Sampled screening can miss encounters between samples. No covariance, collision probability, radar coverage, validated maneuver outcome or operational guarantee is provided. See [scientific limits and benchmarks](docs/SCIENTIFIC_LIMITS.md).
 
 Original project code is [MIT licensed](LICENSE). Space Grotesk retains its [OFL notice](frontend/public/fonts/OFL.txt), and dependencies retain their own licenses. Earth maps are attributed to Solar System Scope under CC BY 4.0; marker silhouettes and atmosphere are drawn in code. See [visualization details](docs/VISUALIZATION.md). The horizon illustration is generated artwork, not observational imagery. Public orbital data and metadata retain their providers' terms; the MIT license does not grant rights to those datasets.
+
+### Enable object-type metadata
+
+Unknown types are expected until an authoritative SATCAT import is configured. GP `CLASSIFICATION_TYPE` is a security marking; it is not object type. The active group is not a complete debris catalogue. No names are used to infer type.
+
+After reviewing the provider terms, fetch a single reusable snapshot outside the repository:
+
+```bash
+backend/.venv/bin/python -m backend.app.metadata_refresh --cache-dir /absolute/persistent/satcat --group active --terms-reviewed
+```
+
+Set `ORBITAL_METADATA_FILE=/absolute/persistent/satcat/active.json` in the backend environment and restart the API. Schedule the same command separately for refresh; the importer enforces its cooldown. Never commit the downloaded snapshot. Missing IDs and conflicting evidence remain unknown. See [classification](docs/CLASSIFICATION.md).
